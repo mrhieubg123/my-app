@@ -1,0 +1,197 @@
+body{
+  overflow-x: hidden;
+  
+}
+body::-webkit-scrollbar { 
+  width: 6px; 
+  opacity: 0 ;
+  
+}
+body:hover::-webkit-scrollbar { 
+  width: 6px;
+  opacity: 1 
+}
+body::-webkit-scrollbar-thumb { 
+  background-color: #999;
+  border-radius: 10px ;
+  
+}
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.main-content {
+  transition: margin-right 0.3s ease;
+}
+.chatbot-pinned ~ .main-content {
+  margin-right: 360px;
+}
+
+
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+c{
+  color: #006f8e;
+  cursor: pointer;
+}
+c :hover{
+  color: #80008e;
+}
+.page-enter{
+  opacity: 0;
+  transform: translateY(20px);
+}
+.page-enter-active{
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms ease-in-out, transform 300ms ease-in-out ;
+}
+.page-exit{
+  opacity: 1;
+  transform: translateY(0);
+}
+.page-exit-active{
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: opacity 300ms ease-in-out, transform 300ms ease-in-out;
+}
+
+
+
+.blinking{
+  animation: blink 1s infinite alternate;
+}
+@keyframes blink{
+  0%{opacity: 1;}
+  70% {opacity: 1;}
+  100% {opacity: 0;}
+}
+
+
+.neon-blinking{
+  animation: neon-blink 1.5s infinite alternate;
+  color: cyan;
+  font-weight: bold;
+}
+@keyframes neon-blink{
+  0%, 100%{opacity: 1; text-shadow: 0 0 10px cyan, 0 0 20px blue;}
+  50% {opacity: 0.3;text-shadow: 0 0 5px cyan, 0 0 10px blue;}
+  
+}
+
+
+.AOIChecksheet{
+  width:100%;
+  /* background-color:#efefef; */
+  height: 100%;
+  border-spacing: 0px;
+}
+.AOIChecksheet thead tr th{
+ text-align:center;
+ padding:5px;
+}
+.AOIChecksheet thead tr th{
+  
+  font-size:13.5px;
+  border:unset;
+  /* padding:5px 15px; */
+ }
+.AOIChecksheet tbody tr td{
+ border:1px solid black;
+ font-size:10.5px;
+ padding:0px 7px;
+ /* white-space: nowrap; */
+}
+.AOIChecksheet tbody tr.noborder td {
+  border:unset !important;
+}
+.AOIChecksheet tbody tr.noborderTB td {
+  border-bottom:unset !important;
+  border-top:unset !important;
+}
+.dialog-cell{
+  position:relative;
+  height:65px;
+  width:50px;
+}
+.dialog-cell::before{
+ content:"";
+ position:absolute;
+ top:0;
+ left:0;
+ width:100%;
+ height:100%;
+ background: linear-gradient(to bottom left, transparent 49%, black 49%, black 50%, transparent 50%);
+}
+.top-right{
+ position:absolute;
+ top:5px;
+ right:5px;
+
+}
+.bottom-left{
+ position:absolute;
+ bottom:5px;
+ left:5px;
+
+}
+.img-magnifier-glass {
+  position: absolute;
+  border: 3px solid #000;
+  border-radius: 50%;
+  cursor: none;
+  width: 100px;
+  height: 100px;
+  z-index: 1000;
+  /* pointer-events: none; */
+}
+
+.img-magnifier-glass::after{
+  content: '+';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+
+@keyframes blink {
+  50% { opacity: 0.5; }
+}

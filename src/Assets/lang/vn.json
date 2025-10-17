@@ -1,0 +1,18 @@
+{
+    "Settings" : "Cài đặt",
+    "Language" : "Ngôn ngữ",
+    "Dark Mode" : "Chế độ tối",
+    "Light Mode" : "Chế độ sáng",
+    "Welcome to React": "Chào mừng đến với React",
+    "Welcome": "Chào mừng",
+    "Chat": "Trò chuyện",
+    "Type a message...": "Nhập tin nhắn...",
+    "Send": "Gửi",
+    "Close": "Đóng",
+    "Click Me": "Nhấn vào đây",
+    "Machine Status": "Tình trạng máy móc",
+    "Pie Chart":"Biểu đồ tròn",
+    "Line Chart":"Biểu đồ đường",
+    "Inventory":"Tồn Kho",
+    "Full screen":"Toàn màn hình"
+}

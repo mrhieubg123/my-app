@@ -1,0 +1,257 @@
+import React, { useState, useEffect } from 'react';
+import {
+    Dialog,
+    DialogContent,
+    DialogTitle,
+    TextField,
+    Button,
+    Typography,
+    Box,
+    IconButton,
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close'; // Có thể dùng cho nút đóng dialog
+import LaptopMacIcon from '@mui/icons-material/LaptopMac'; // Ví dụ icon Foxconn
+import { getAuthorizedAxiosIntance } from '../../../../utils/axiosConfig';
+import { useSelector, useDispatch } from 'react-redux';
+const axiosInstance = await getAuthorizedAxiosIntance();
+
+function ConfirmDataGelDialog({ open, onClose, initialData, onConfirmSucces }) {
+    const user = useSelector((state) => state.auth.login.currentUser);
+    const [formData, setFormData] = useState({
+        machine: initialData?.Machine || '', // Dữ liệu mặc định hoặc từ props
+        dateTime: initialData?.TIME_START || '', // Dữ liệu mặc định hoặc từ props
+        comment: '',
+    });
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prevData) => ({
+            ...prevData,
+            [name]: value,
+        }));
+    };
+
+    const handleConfirm = () => {
+        console.log('Dữ liệu được xác nhận:', {
+            'ID': initialData.ID,
+            'ID_Confirm': 'V1034779',
+            'Comment': formData.comment
+        }); 
+        confirmDataGelError({
+            'ID': initialData.ID,
+            'ID_Confirm': 'V1034779',
+            'Comment': formData.comment
+        })
+        // Thực hiện logic xác nhận dữ liệu ở đây (ví dụ: gửi lên API)
+        onClose(); // Đóng dialog sau khi xác nhận
+    };
+
+    const confirmDataGelError = async (model) => {
+        try {
+            const response = await axiosInstance.post('api/MPE/confirmDataGelError', model)
+        }
+        catch (error) {
+            console.log(error.message)
+        }
+        finally {
+            onConfirmSucces();
+        }
+    };
+
+    useEffect(() => {
+        setFormData({
+            machine: initialData?.Machine || '', // Dữ liệu mặc định hoặc từ props
+            dateTime: initialData?.TIME_START || '', // Dữ liệu mặc định hoặc từ props
+            comment: '',
+        })
+    }, [initialData])
+
+    return (
+        <Dialog
+            open={open}
+            onClose={onClose}
+            aria-labelledby="confirm-data-gel-dialog-title"
+            PaperProps={{
+                sx: {
+                    backgroundColor: '#424242', // Màu nền của dialog (xám đậm)
+                    color: 'white', // Màu chữ chung trong dialog
+                    borderRadius: '8px',
+                    padding: '20px',
+                },
+            }}
+            // Optional: Để dialog căn giữa màn hình và có khoảng cách xung quanh
+            sx={{
+                '& .MuiDialog-paper': {
+                    maxWidth: '500px', // Chiều rộng tối đa của dialog
+                    width: '100%',
+                },
+            }}
+        >
+            <DialogTitle id="confirm-data-gel-dialog-title" sx={{ pb: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
+                    {/* Bạn có thể thay thế bằng logo Foxconn thực tế */}
+                    <LaptopMacIcon sx={{ fontSize: 30, mr: 1, color: '#f0f0f0' }} />
+                    <Typography variant="h5" component="span" sx={{ color: '#f0f0f0', fontWeight: 'bold' }}>
+                        Foxconn
+                    </Typography>
+                </Box>
+                {/* Nút đóng dialog (tùy chọn) */}
+                <IconButton
+                    aria-label="close"
+                    onClick={onClose}
+                    sx={{
+                        position: 'absolute',
+                        right: 8,
+                        top: 8,
+                        color: (theme) => theme.palette.grey[500],
+                    }}
+                >
+                    <CloseIcon />
+                </IconButton>
+            </DialogTitle>
+            <DialogContent sx={{ p: 0 }}> {/* p:0 để loại bỏ padding mặc định của DialogContent */}
+                <Typography variant="h6" sx={{ color: 'white', mb: 2, borderBottom: '1px solid #666', pb: 1 }}>
+                    Confirm_DataGel
+                </Typography>
+
+                <Box sx={{ mb: 2 }}>
+                    <Typography variant="body1" sx={{ color: 'white', mb: 0.5 }}>
+                        Machine
+                    </Typography>
+                    <TextField
+                        fullWidth
+                        name="machine"
+                        value={formData.machine}
+                        onChange={handleChange}
+                        variant="outlined"
+                        size="small"
+                        InputProps={{
+                            readOnly: true, // Nếu không cho phép chỉnh sửa
+                            sx: {
+                                backgroundColor: '#555', // Màu nền của input
+                                color: 'white', // Màu chữ trong input
+                                '& .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: '#777', // Màu border
+                                },
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: '#999',
+                                },
+                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: '#fff',
+                                },
+                            },
+                        }}
+                        InputLabelProps={{
+                            sx: { color: '#bbb' } // Màu của label nếu có
+                        }}
+                    />
+                </Box>
+
+                <Box sx={{ mb: 2 }}>
+                    <Typography variant="body1" sx={{ color: 'white', mb: 0.5 }}>
+                        Date Time
+                    </Typography>
+                    <TextField
+                        fullWidth
+                        name="dateTime"
+                        value={formData.dateTime}
+                        onChange={handleChange}
+                        variant="outlined"
+                        size="small"
+                        InputProps={{
+                            readOnly: true, // Nếu không cho phép chỉnh sửa
+                            sx: {
+                                backgroundColor: '#555',
+                                color: 'white',
+                                '& .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: '#777',
+                                },
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: '#999',
+                                },
+                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: '#fff',
+                                },
+                            },
+                        }}
+                        InputLabelProps={{
+                            sx: { color: '#bbb' }
+                        }}
+                    />
+                </Box>
+
+                <Box sx={{ mb: 3 }}>
+                    <Typography variant="body1" sx={{ color: 'white', mb: 0.5 }}>
+                        Comment
+                    </Typography>
+                    <TextField
+                        fullWidth
+                        name="comment"
+                        value={formData.comment}
+                        onChange={handleChange}
+                        variant="outlined"
+                        size="small"
+                        multiline // Cho phép nhập nhiều dòng
+                        rows={2}    // Số dòng hiển thị mặc định
+                        InputProps={{
+                            sx: {
+                                backgroundColor: '#555',
+                                color: 'white',
+                                '& .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: '#777',
+                                },
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: '#999',
+                                },
+                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: '#fff',
+                                },
+                            },
+                        }}
+                        InputLabelProps={{
+                            sx: { color: '#bbb' }
+                        }}
+                    />
+                </Box>
+
+                <Button
+                    fullWidth
+                    variant="contained"
+                    sx={{
+                        backgroundColor: '#4CAF50', // Màu xanh lá cây của nút CONFIRM
+                        '&:hover': {
+                            backgroundColor: '#45a049', // Màu xanh đậm hơn khi hover
+                        },
+                        color: 'white',
+                        fontWeight: 'bold',
+                        py: 1.5, // Padding dọc
+                        fontSize: '1.1rem',
+                        borderRadius: '4px',
+                    }}
+                    onClick={handleConfirm}
+                >
+                    CONFIRM
+                </Button>
+
+                <Box sx={{ mt: 3, textAlign: 'center' }}>
+                    <Button
+                        onClick={onClose}
+                        sx={{
+                            color: '#ADD8E6', // Màu xanh nhạt cho "Back to List"
+                            textTransform: 'none', // Bỏ viết hoa chữ cái đầu
+                            fontSize: '0.9rem',
+                            '&:hover': {
+                                textDecoration: 'underline',
+                                backgroundColor: 'transparent',
+                            },
+                        }}
+                    >
+                        Back to List
+                    </Button>
+                </Box>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+export default ConfirmDataGelDialog;

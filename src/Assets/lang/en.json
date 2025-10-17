@@ -1,0 +1,18 @@
+{
+    "Settings" : "Settings",
+    "Dark Mode" : "Dark Mode",
+    "Light Mode" : "Light Mode",
+    "Language" : "Language",
+    "Welcome to React": "Welcome to React",
+    "Welcome": "Welcome",
+    "Chat": "Chat",
+    "Type a message...": "Type a message...",
+    "Send": "Send",
+    "Close": "Close",
+    "Click Me": "Click Me",
+    "Machine Status": "Machine Status",
+    "Pie Chart":"Pie Chart",
+    "Line Chart":"Line Chart",
+    "Inventory":"Inventory",
+    "Full screen":"Full Screen"
+}
