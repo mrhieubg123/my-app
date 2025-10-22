@@ -17,7 +17,13 @@ function HoursAddOne(date) {
   return resultTime;
 }
 
-const AnalysisChart = ({ idata = [], idata2 = [], queryDate, onShowModal }) => {
+const AnalysisChart = ({
+  idata = [],
+  idata2 = [],
+  idata3 = [],
+  queryDate,
+  onShowModal,
+}) => {
   const theme = useTheme();
   const parentRef = useRef(null);
   const [parentSize, setParentSize] = useState({ width: 0, height: 0 });
@@ -61,6 +67,7 @@ const AnalysisChart = ({ idata = [], idata2 = [], queryDate, onShowModal }) => {
             counted: 1,
             waitLCR: item.status === "LOCK WAIT UNLOCK" ? 1 : 0,
             waitReturn: 0,
+            waitCount: 0,
             time: item.end_time,
           };
         }
@@ -82,6 +89,29 @@ const AnalysisChart = ({ idata = [], idata2 = [], queryDate, onShowModal }) => {
             counted: 0,
             waitLCR: 0,
             waitReturn: 1,
+            waitCount: 0,
+            time: item.end_time,
+          };
+        }
+      });
+  idata3 &&
+    idata3
+      .filter(
+        (item) =>
+          dayjs(item.end_time).format("YYYY-MM-DD") ===
+          dayjs(queryDate).format("YYYY-MM-DD")
+      )
+      .forEach((item) => {
+        const dateT = dayjs(item.end_time).format("HH:00");
+        if (temp[dateT]) {
+          temp[dateT].waitCount += 1;
+        } else {
+          temp[dateT] = {
+            DateT: dateT,
+            counted: 0,
+            waitLCR: 0,
+            waitCount: 1,
+            waitReturn: 0,
             time: item.end_time,
           };
         }
@@ -154,10 +184,10 @@ const AnalysisChart = ({ idata = [], idata2 = [], queryDate, onShowModal }) => {
         },
       },
       {
-        name: "Counted",
+        name: "Wait count",
         type: "column",
         borderWidth: 0,
-        data: ErrorList.map((item) => item.counted),
+        data: ErrorList.map((item) => item.waitCount),
         color: {
           linearGradient: {
             x1: 0,
@@ -306,9 +336,9 @@ const AnalysisChart = ({ idata = [], idata2 = [], queryDate, onShowModal }) => {
         color: {
           linearGradient: {
             x1: 0,
-            y1: 0,
+            y1: 1,
             x2: 0,
-            y2: 1,
+            y2: 0,
           },
           stops: [
             [0, "#ff3110"],
@@ -328,9 +358,9 @@ const AnalysisChart = ({ idata = [], idata2 = [], queryDate, onShowModal }) => {
         color: {
           linearGradient: {
             x1: 0,
-            y1: 0,
+            y1: 1,
             x2: 0,
-            y2: 1,
+            y2: 0,
           },
           stops: [
             [0, "#34aadc"],

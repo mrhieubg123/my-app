@@ -12,20 +12,26 @@ import TableError from "./tableError";
 HighchartsMore(Highcharts);
 SolidGauge(Highcharts);
 
-const RadialChart = ({ title = "", idata = [], idata2 = [], onShowModal }) => {
+const RadialChart = ({
+  title = "",
+  idata = [],
+  idata2 = [],
+  idata3 = [],
+  onShowModal,
+}) => {
   const theme = useTheme();
   const parentRef = useRef(null);
   const [parentSize, setParentSize] = useState({ width: 0, height: 0 });
   const [showModal2, setShowModal2] = useState(false);
   const [modalData, setModalData] = useState({ title: "", items: [] });
 
-  const totalOK = idata.length;
-  const totalNG =
+  const totalWaitReturn = idata.length;
+  const totalWaitLCR =
     idata2.length > 0
-      ? idata2.filter((item) => (item.status === "LOCK WAIT UNLOCK")).length
+      ? idata2.filter((item) => item.status === "LOCK WAIT UNLOCK").length
       : 0;
-
-  const total = totalOK * 1 + totalNG * 1;
+  const totalWaitCount = idata3.length;
+  const total = totalWaitReturn + totalWaitLCR + totalWaitCount;
 
   useEffect(() => {
     const updateSize = () => {
@@ -69,13 +75,18 @@ const RadialChart = ({ title = "", idata = [], idata2 = [], onShowModal }) => {
   const seriesData = [
     {
       name: "Wait return",
-      value: (((totalOK * 100) / total) * 1).toFixed(2) * 1,
-      total: totalOK,
+      value: (((totalWaitReturn * 100) / total) * 1).toFixed(2) * 1,
+      total: totalWaitReturn,
     },
     {
       name: "Wait LCR",
-      value: (((totalNG * 100) / total) * 1).toFixed(2) * 1,
-      total: totalNG,
+      value: (((totalWaitLCR * 100) / total) * 1).toFixed(2) * 1,
+      total: totalWaitLCR,
+    },
+    {
+      name: "Wait count",
+      value: (((totalWaitCount * 100) / total) * 1).toFixed(2) * 1,
+      total: totalWaitCount,
     },
   ];
 
@@ -92,130 +103,6 @@ const RadialChart = ({ title = "", idata = [], idata2 = [], onShowModal }) => {
     ],
     style: { fontSize: "12px" },
   }));
-
-  // const options = {
-  //   chart: {
-  //     type: 'solidgauge',
-  //     animation: {
-  //       duration: 1000,
-  //     },
-  //     backgroundColor: "transparent",
-  //     reflow: true,
-  //     height: parentSize.height,
-  //   },
-  //   title: {
-  //     text: title,
-  //     style: {
-  //       fontSize: '15px',
-  //     },
-  //   },
-  //   pane: {
-  //     startAngle: 0,
-  //     endAngle: 360,
-  //     background: seriesData.map((radius, index) => ({
-  //       outerRadius: radiusConfig[index].outer,
-  //       innerRadius: radiusConfig[index].inner,
-  //       backgroundColor: '#99999930',
-  //       borderWidth: 0,
-  //       borderColor: '#ccc',
-  //     }))
-  //   },
-  //   yAxis: {
-  //     min: 0,
-  //     max: 100,
-  //     lineWidth: 0,
-  //     tickPositions: [],
-  //   },
-  //   plotOptions: {
-  //       solidgauge: {
-  //         linecap: 'round', // Bo tròn đầu thanh
-  //         dataLabels: {
-  //           enabled: true,
-  //           useHTML: true,
-  //           borderWidth: 0,
-  //           align: 'center',
-  //           verticalAlign:'middle',
-  //           format: `<div style="text-align:center; border: unset">
-  //                     <span style="font-size:12px; font-weight:bold; color:{point.color}; textShadow:none;">{series.name}</span>
-  //                     </br>
-  //                     <span style="font-size:12px; color: ${theme.palette.chart.color}; textShadow:none;">{y}%</span>
-  //                 </div>`,
-  //           style: {
-  //             fontSize: "12px",
-  //             border: 'none',
-  //             background : 'none',
-  //           }
-  //         },
-  //         borderRadius: '50%',
-  //         stickyTracking: false,
-  //         point:{
-  //           events:{
-  //             mouseOver: function(){
-  //               const chart = this.series.chart;
-  //               const point = this;
-  //               chart.update({
-  //                 series:[{
-  //                   dataLabels:{
-  //                     format: `<div style="text-align:center; border: unset">
-  //                                 <span style="font-size:12px; font-weight:bold; color:${point.color}; textShadow:none;">${point.series.name}</span>
-  //                                 </br>
-  //                                 <span style="font-size:12px; color: ${theme.palette.chart.color}; textShadow:none;">${point.y}%</span>
-  //                             </div>`,
-  //                     useHTML: true
-  //                   }
-  //                 }]
-  //               },false)
-  //               chart.redraw();
-  //             },
-  //             mouseOut: function(){
-  //               const chart = this.series.chart;
-  //               const point = this;
-  //               chart.update({
-  //                 series:[{
-  //                   dataLabels:{
-  //                     format: `<div style="text-align:center; border: unset">
-  //                                 <span style="font-size:12px; font-weight:bold; color:${point.color}; textShadow:none;">${point.series.name}</span>
-  //                                 </br>
-  //                                 <span style="font-size:12px; color: ${theme.palette.chart.color}; textShadow:none;">${point.y}%</span>
-  //                             </div>`,
-  //                     useHTML: true
-  //                   }
-  //                 }]
-  //               },false)
-  //               chart.redraw();
-  //             },
-  //             click: function(){
-
-  //           }
-  //           }
-  //         }
-  //       },
-  //       series:{
-  //         states:{
-  //           inactive:{
-  //             enabled: false
-  //           },
-  //           hover:{
-  //             enabled: true,
-  //             brightness:0.5,
-  //           }
-  //         },
-
-  //       }
-  //   },
-
-  //   series: series,
-  //   tooltip: {
-  //     enabled: false,
-  //     valueSuffix: '%',
-  //   },
-  //   exporting:{
-  //     enabled: false,
-  //   },
-  //   credits: {
-  //     enabled: false,
-  //   },
-  // };
 
   const options = {
     chart: {
@@ -239,7 +126,10 @@ const RadialChart = ({ title = "", idata = [], idata2 = [], onShowModal }) => {
         cursor: "pointer",
         dataLabels: {
           enabled: true,
-          format: "<b>{point.name}</b>: {point.percentage:.1f} %", // Hiển thị tên và phần trăm
+          format: "<b>{point.name}</b>: {point.y}", // Hiển thị tên và phần trăm
+          style: {
+            fontSize: "0.8em",
+          },
         },
         point: {
           events: {
@@ -248,18 +138,20 @@ const RadialChart = ({ title = "", idata = [], idata2 = [], onShowModal }) => {
               if (event.point.name === "Wait return") {
                 console.log("click Wait return");
                 onShowModal(idata);
-              } else {
+              } else if (event.point.name === "Wait LCR") {
                 console.log("click Wait LCR");
                 onShowModal(
                   idata2.filter((item) => item.status === "LOCK WAIT UNLOCK")
                 );
+              } else if (event.point.name === "Wait count") {
+                console.log("click Wait count");
+                onShowModal(idata3);
               }
               // setShowModal2(true);
             },
           },
         },
       },
-      
     },
     series: [
       {
@@ -268,11 +160,15 @@ const RadialChart = ({ title = "", idata = [], idata2 = [], onShowModal }) => {
         data: [
           {
             name: "Wait return",
-            y: totalOK,
+            y: totalWaitReturn,
           },
           {
             name: "Wait LCR",
-            y: totalNG,
+            y: totalWaitLCR,
+          },
+          {
+            name: "Wait count",
+            y: totalWaitCount,
           },
         ],
       },

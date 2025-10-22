@@ -42,6 +42,7 @@ import ErrorPage from './Pages/ErrorPage';
 import FatpMachineControl from './Pages/FATP/MachineFatpStatus';
 import GlueScrewStatus from './Pages/FATP/GlueScrew';
 import VCutMachineStatus from './Pages/FATP/VCutMachineStatus';
+import MaintenanceStatus from './Pages/FATP/Maintenance';
 
 import DataGelScreen from './Pages/MPE/DataGel';
 import Temperature from './Pages/ME/Temperature';
@@ -112,6 +113,7 @@ const AppRoutes = ({user}) => {
               <Route path='/FATP/FATPMachineControl' element={<PrivateRoute><FatpMachineControl/></PrivateRoute>} />
               <Route path='/FATP/GlueScrewStatus' element={<PrivateRoute><GlueScrewStatus/></PrivateRoute>} />
               <Route path='/FATP/VCutMachineStatus' element={<PrivateRoute><VCutMachineStatus/></PrivateRoute>} />
+              <Route path='/FATP/MaintenanceStatus' element={<PrivateRoute><MaintenanceStatus/></PrivateRoute>} />
               
               
               <Route path='/ErrorPage' element={<ErrorPage/>}/>

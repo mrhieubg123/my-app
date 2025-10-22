@@ -1,7 +1,7 @@
 import React, { memo, useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import HiBox from "../../../components/HiBox";
-import { Grid, Button } from "@mui/material";
+import { Grid, Button, Box } from "@mui/material";
 import CABChart from "./components/CABChart";
 import TableMachineStatus from "./components/MachineStatus";
 import HiProgressBar from "./components/FailureAnalysis";
@@ -10,8 +10,9 @@ import LineChart from "./components/LineChart";
 import TableErorHistory from "./components/tableErrorOver10m";
 import HiModal from "../../../components/HiModal";
 import ESDTotal from "./components/ESDTotal";
-import { Description } from "@mui/icons-material";
+import { Description, Build } from "@mui/icons-material";
 import ForceDefaultDetail from "./components/ForceDefaultDetail";
+import ForceDocummentDetail from "./components/ForceDocummentDetail";
 import RotatingModeSelector from "./components/CircularSliderMUI";
 
 const axiosInstance = await getAuthorizedAxiosIntance();
@@ -26,6 +27,7 @@ const GlueScrewStatus = () => {
   });
   const [queryDate, setQueryDate] = useState("");
   const isFirstRender2 = useState(true);
+  const [showModal2, setShowModal2] = useState(false);
   const [showModal3, setShowModal3] = useState(false);
   const [dataScrewMachineStatus, setDataScrewMachineStatus] = useState([]);
   const [dataForceDefault, setDataForceDefault] = useState([]);
@@ -94,9 +96,7 @@ const GlueScrewStatus = () => {
       List3.sort((a, b) => b.Downtime - a.Downtime);
       setData6({
         DataSeries: List3,
-        colors: [
-          "linear-gradient(90deg,#ff311055,#ff3110) ",
-        ],
+        colors: ["linear-gradient(90deg,#ff311055,#ff3110) "],
         labels: ["Frequency"],
       });
       const tempError = {};
@@ -116,9 +116,7 @@ const GlueScrewStatus = () => {
       List2.sort((a, b) => b.Downtime - a.Downtime);
       setData5({
         DataSeries: List2,
-        colors: [
-          "linear-gradient(90deg,#ff311055,#ff3110)  ",
-        ],
+        colors: ["linear-gradient(90deg,#ff311055,#ff3110)  "],
         labels: ["Frequency"],
       });
     } catch (error) {
@@ -218,17 +216,44 @@ const GlueScrewStatus = () => {
           height="40vh"
           variant="filled"
           functionHtml={
-            <Button
-              sx={{ position: "absolute", top: 0, right: 0 }}
-              size="small"
-              onClick={() => {
-                setShowModal3(true);
+            <Box
+              sx={{
+                 position: "absolute", top: 0, right: 0 ,
+                flexDirection: "row",
               }}
             >
-              <Description />
-            </Button>
+              <Button
+                size="small"
+                onClick={() => {
+                  setShowModal2(true);
+                }}
+              >
+                <Description />
+              </Button>
+              <Button
+                size="small"
+                onClick={() => {
+                  setShowModal3(true);
+                }}
+              >
+                <Build />
+              </Button>
+            </Box>
           }
         >
+          <HiModal
+            header={`Force Documment Detail`}
+            open={showModal2}
+            onClose={() => setShowModal2(false)}
+            widthModal={80}
+            heightModal={80}
+          >
+            <ForceDocummentDetail
+              idata={dataForceDefault}
+              idataMachine={dataScrewMachineStatus}
+              onModelChange={fetchDataForceDefault}
+            ></ForceDocummentDetail>
+          </HiModal>
           <HiModal
             header={`Force Default Detail`}
             open={showModal3}
@@ -292,7 +317,7 @@ const GlueScrewStatus = () => {
         columns={12}
       >
         <Grid
-          size={{ lg: 12, md: 12, xs: 12  }}
+          size={{ lg: 12, md: 12, xs: 12 }}
           container
           columns={12}
           lg={12}

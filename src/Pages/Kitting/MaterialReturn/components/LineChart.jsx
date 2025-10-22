@@ -6,7 +6,7 @@ import { Box, Switch, Typography } from "@mui/material";
 import dayjs from "dayjs";
 // Khởi tạo module 3D
 
-const LineChart = ({ idata = [], idata2 = [], queryDate }) => {
+const LineChart = ({ idata = [], idata2 = [], idata3 = [], queryDate }) => {
   const theme = useTheme();
   const parentRef = useRef(null);
   const [parentSize, setParentSize] = useState({ width: 0, height: 0 });
@@ -52,6 +52,7 @@ const LineChart = ({ idata = [], idata2 = [], queryDate }) => {
             DateT: dateT,
             counted: 1,
             waitLCR: item.status === "LOCK WAIT UNLOCK" ? 1 : 0,
+            waitCount: 0,
             waitReturn: 0,
           };
         }
@@ -72,10 +73,26 @@ const LineChart = ({ idata = [], idata2 = [], queryDate }) => {
             DateT: dateT,
             counted: 0,
             waitLCR: 0,
+            waitCount: 0,
             waitReturn: 1,
           };
         }
       });
+  idata3 &&
+    idata3.forEach((item) => {
+      const dateT = dayjs(item.end_time).format("YYYY-MM-DD");
+      if (temp[dateT]) {
+        temp[dateT].waitCount += 1;
+      } else {
+        temp[dateT] = {
+          DateT: dateT,
+          counted: 0,
+          waitLCR: 0,
+          waitCount: 1,
+          waitReturn: 0,
+        };
+      }
+    });
 
   const ErrorList = Object.values(temp);
 
@@ -106,8 +123,8 @@ const LineChart = ({ idata = [], idata2 = [], queryDate }) => {
       // }
     },
     yAxis: {
-      min: 0,
-      max: 100,
+      // min: 0,
+      // max: 100,
       labels: {
         format: "{value}",
         style: {
@@ -129,32 +146,56 @@ const LineChart = ({ idata = [], idata2 = [], queryDate }) => {
         name: "Wait LCR",
         type: "spline",
         // yAxis: 0,
-        data: ErrorList.map((item) =>
-          parseFloat((((item.waitLCR * 100) / item.counted) * 1).toFixed(2))
+        data: ErrorList.map(
+          (item) =>
+            parseFloat((((item.waitLCR * 100) / item.counted) * 1).toFixed(2))
+          // item.waitLCR
         ),
-        color: "#00e396",
-        dataLabels: {
-          color: "#00e396",
-          fontSize: "11px",
-        },
+        // color: "#00e396",
+        // dataLabels: {
+        //   color: "#00e396",
+        //   fontSize: "11px",
+        // },
       },
       {
         name: "Wait Return",
         type: "spline",
         // yAxis: 0,
         data: ErrorList.map((item) =>
+          // item.waitReturn
           parseFloat(
             (
-              ((item.waitReturn * 100) / (item.counted + item.waitReturn)) *
+              ((item.waitReturn * 100) /
+                (item.counted + item.waitReturn + item.waitCount)) *
               1
             ).toFixed(2)
           )
         ),
-        color: "#2099f5",
-        dataLabels: {
-          color: "#2099f5",
-          fontSize: "11px",
-        },
+        // color: "#2099f5",
+        // dataLabels: {
+        //   color: "#2099f5",
+        //   fontSize: "11px",
+        // },
+      },
+      {
+        name: "Wait Count",
+        type: "spline",
+        // yAxis: 0,
+        data: ErrorList.map((item) =>
+          // item.waitCount
+          parseFloat(
+            (
+              ((item.waitCount * 100) /
+                (item.counted + item.waitReturn + item.waitCount)) *
+              1
+            ).toFixed(2)
+          )
+        ),
+        // color: "#2099f5",
+        // dataLabels: {
+        //   color: "#2099f5",
+        //   fontSize: "11px",
+        // },
       },
     ],
     credits: {

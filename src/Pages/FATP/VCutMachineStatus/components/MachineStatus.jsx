@@ -199,7 +199,7 @@ const MachineStatusHighchartsGrid = ({ idata = [], onCallBack }) => {
   };
 
   const MachineStatusCard2 = ({ machine }) => {
-    const { NAME_MACHINE, DIFF, LINE, LOCATION } = machine;
+    const { NAME_MACHINE, TOTAL , LINE, LOCATION } = machine;
 
     let bgColor = "#f7f7f7";
     let titleColor = "text.primary";
@@ -207,13 +207,13 @@ const MachineStatusHighchartsGrid = ({ idata = [], onCallBack }) => {
     let message = "Hoạt động bình thường";
     let status = "NORMAL";
 
-    if (DIFF >= CRITICAL_THRESHOLD) {
+    if (TOTAL >= CRITICAL_THRESHOLD) {
       bgColor = "#ff5370"; // Đỏ nhạt
       titleColor = "error.dark";
       icon = <Error sx={{ fontSize: 18 }} />;
       message = "CẦN THAY DAO NGAY!";
       status = "CRITICAL";
-    } else if (DIFF >= WARNING_THRESHOLD) {
+    } else if (TOTAL >= WARNING_THRESHOLD) {
       bgColor = "#f1c40f"; // Cam nhạt
       titleColor = "warning.dark";
       icon = <Warning sx={{ fontSize: 18 }} />;
@@ -275,7 +275,7 @@ const MachineStatusHighchartsGrid = ({ idata = [], onCallBack }) => {
           >
             {/* WaterFill nền */}
             <WaterFill
-              value={(DIFF / CRITICAL_THRESHOLD) * 100}
+              value={(TOTAL / CRITICAL_THRESHOLD) * 100}
               color={bgColor}
               bgColor="rgba(255,255,255,0.06)"
               radius={8}
@@ -322,7 +322,7 @@ const MachineStatusHighchartsGrid = ({ idata = [], onCallBack }) => {
                 zIndex: 3,
               }}
             >
-              {DIFF}/{CRITICAL_THRESHOLD}
+              {TOTAL}/{CRITICAL_THRESHOLD}
             </Typography>
           </Box>
         </CardContent>

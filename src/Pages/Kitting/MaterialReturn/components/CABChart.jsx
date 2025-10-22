@@ -6,7 +6,7 @@ import { useTheme } from "@mui/material/styles";
 import dayjs from "dayjs";
 // Khởi tạo module 3D
 
-const CABChart = ({ idata = [], idata2 = [], onChangeDate }) => {
+const CABChart = ({ idata = [], idata2 = [], idata3 = [], onChangeDate }) => {
   const theme = useTheme();
   const parentRef = useRef(null);
   const [parentSize, setParentSize] = useState({ width: 0, height: 0 });
@@ -27,6 +27,7 @@ const CABChart = ({ idata = [], idata2 = [], onChangeDate }) => {
           DateT: dateT,
           counted: 1,
           waitLCR: item.status === "LOCK WAIT UNLOCK" ? 1 : 0,
+          waitCount: 0,
           waitReturn: 0,
         };
       }
@@ -41,11 +42,28 @@ const CABChart = ({ idata = [], idata2 = [], onChangeDate }) => {
           DateT: dateT,
           counted: 0,
           waitLCR: 0,
+          waitCount: 0,
           waitReturn: 1,
         };
       }
     });
+  idata3 &&
+    idata3.forEach((item) => {
+      const dateT = dayjs(item.end_time).format("YYYY-MM-DD");
+      if (temp[dateT]) {
+        temp[dateT].waitCount += 1;
+      } else {
+        temp[dateT] = {
+          DateT: dateT,
+          counted: 0,
+          waitCount: 1,
+          waitLCR: 0,
+          waitReturn: 0,
+        };
+      }
+    });
   const ErrorList = Object.values(temp);
+  console.log('ErrorList',ErrorList)
 
   useEffect(() => {
     const updateSize = () => {
@@ -153,11 +171,11 @@ const CABChart = ({ idata = [], idata2 = [], onChangeDate }) => {
         },
       },
       {
-        name: "Counted",
+        name: "Wait count",
         type: "column",
         borderWidth: 0,
         yAxis: 1,
-        data: ErrorList.map((item) => item.counted),
+        data: ErrorList.map((item) => item.waitCount),
         color: {
           linearGradient: {
             x1: 0,

@@ -6,38 +6,38 @@ import { Box, Switch, Typography } from "@mui/material";
 // Khởi tạo module 3D
 
 const MOCK_DATA = [
-    {
-        "FACTORY": "A02",
-        "LINE": "T04",
-        "LOCATION": "1",
-        "NAME_MACHINE": "V-cut01",
-        "TIMET":"02:30",
-        "DIFF": 1333
-    },
-    {
-        "FACTORY": "B01",
-        "LINE": "T04",
-        "LOCATION": "1",
-        "NAME_MACHINE": "V-cut01",
-        "TIMET":"03:30",
-        "DIFF": 0
-    },
-    {
-        "FACTORY": "B01",
-        "LINE": "T04",
-        "LOCATION": "2",
-        "NAME_MACHINE": "V-cut02",
-        "TIMET":"03:30",
-        "DIFF": 0
-    },
-    {
-        "FACTORY": "B01",
-        "LINE": "T06",
-        "LOCATION": "1",
-        "NAME_MACHINE": "V-cut01",
-        "TIMET":"04:30",
-        "DIFF": 100
-    }
+  {
+    FACTORY: "A02",
+    LINE: "T04",
+    LOCATION: "1",
+    NAME_MACHINE: "V-cut01",
+    TIMET: "02:30",
+    DIFF: 1333,
+  },
+  {
+    FACTORY: "B01",
+    LINE: "T04",
+    LOCATION: "1",
+    NAME_MACHINE: "V-cut01",
+    TIMET: "03:30",
+    DIFF: 0,
+  },
+  {
+    FACTORY: "B01",
+    LINE: "T04",
+    LOCATION: "2",
+    NAME_MACHINE: "V-cut02",
+    TIMET: "03:30",
+    DIFF: 0,
+  },
+  {
+    FACTORY: "B01",
+    LINE: "T06",
+    LOCATION: "1",
+    NAME_MACHINE: "V-cut01",
+    TIMET: "04:30",
+    DIFF: 100,
+  },
 ];
 const LineChart = ({ idata = [] }) => {
   const theme = useTheme();
@@ -67,27 +67,102 @@ const LineChart = ({ idata = [] }) => {
     };
   }, []);
 
+  // data: list đã lọc sẵn trong 1 ngày
+  // Mỗi item có: ID, FACTORY, LINE, LOCATION, NAME_MACHINE, TOTAL, TIME (yyyy-MM-dd HH:mm:ss)
+  function calculateHourlyByMachine(data) {
+    if (!Array.isArray(data) || data.length === 0) return [];
+
+    // Parse TIME và lấy giờ
+    const parsed = data.map(item => {
+      const d = new Date(item.TIME);
+      return {
+        ...item,
+        __time: d,
+        __hour: d.getHours(),
+      };
+    });
+
+    // B1) Group theo (factory, line, name_machine, location, hour)
+    const g1 = {};
+    for (const r of parsed) {
+      const key = `${r.FACTORY}|${r.LINE}|${r.NAME_MACHINE}|${r.LOCATION}|${r.__hour}`;
+      if (!g1[key]) g1[key] = [];
+      g1[key].push(r);
+    }
+
+    // B2) Trong mỗi nhóm nhỏ (từng location), tính diff = max(total) - min(total)
+    const perLocPerHour = Object.entries(g1).map(([key, rows]) => {
+      const [factory, line, nameMachine, location, hourStr] = key.split('|');
+      rows.sort((a, b) => a.__time - b.__time);
+      const maxTotalChange = rows.reduce(
+        (max, item) => (item.TOTAL > max ? item.TOTAL : max),
+        -Infinity
+      );
+      const minTotal = rows[0].TOTAL;
+      const maxTotal = rows[rows.length - 1].TOTAL;
+      const diff = maxTotal !== maxTotalChange
+          ? maxTotalChange - minTotal + maxTotal
+          : maxTotal - minTotal;
+      return {
+        factory,
+        line,
+        nameMachine,
+        location,
+        hour: Number(hourStr),
+        diff
+      };
+    });
+
+    // B3) Rollup theo (factory, line, name_machine, hour): cộng diff của các location
+    const g2 = {};
+    for (const r of perLocPerHour) {
+      const key = `${r.factory}|${r.line}|${r.nameMachine}|${r.hour}`;
+      if (!g2[key]) g2[key] = 0;
+      g2[key] += r.diff;
+    }
+
+    // B4) Trả về list kết quả
+    const result = Object.entries(g2)
+      .map(([key, totalHourlyQty]) => {
+        const [factory, line, nameMachine, hourStr] = key.split('|');
+        return {
+          factory,
+          line,
+          nameMachine,
+          hour: Number(hourStr),
+          totalHourlyQty
+        };
+      })
+      .sort((a, b) =>
+        a.factory.localeCompare(b.factory) ||
+        a.line.localeCompare(b.line) ||
+        a.nameMachine.localeCompare(b.nameMachine) ||
+        a.hour - b.hour
+      );
+
+    return result;
+  }
+
   const grouped = {};
 
-  MOCK_DATA.forEach((item) => {
+  calculateHourlyByMachine(idata).forEach((item) => {
     // const timeKey = new Date(item.TimeT).getTime();
-    const timeKey = item.TIMET;
-    const key = `${switchMOL ? item.NAME_MACHINE : item.LINE}_${timeKey}`;
+    const timeKey = `${item.hour}:00`;
+    const key = `${switchMOL ? (`${item.factory}-${item.line}-${item.nameMachine}`) : (`${item.factory}-${item.line}`)}_${timeKey}`;
 
     if (!grouped[key]) {
       grouped[key] = {
-        LINE: switchMOL ? item.NAME_MACHINE : item.LINE,
+        LINE: switchMOL ? (`${item.factory}-${item.line}-${item.nameMachine}`) : (`${item.factory}-${item.line}`),
         time: timeKey,
-        runTime: 0,
         TOTALTIME: 0,
       };
     }
-    grouped[key].TOTALTIME += item.DIFF;
+    grouped[key].TOTALTIME += item.totalHourlyQty;
   });
 
   const serialMap = {};
 
-  Object.values(grouped).forEach(({ LINE, time, runTime, TOTALTIME }) => {
+  Object.values(grouped).forEach(({ LINE, time, TOTALTIME }) => {
     if (!serialMap[LINE]) serialMap[LINE] = [];
     serialMap[LINE].push([time, TOTALTIME]);
   });
@@ -100,6 +175,53 @@ const LineChart = ({ idata = [] }) => {
     series.length > 0 ? series.map((item) => item.data.length) : [];
   const maxLength =
     seriesLength.length > 0 ? Math.max(...seriesLength.map((e) => e), 0) : 1;
+
+  function calculateHourlyCutQuantities(data) {
+    if (!data || data.length === 0) return [];
+
+    // --- B1. Parse TIME và lấy giờ ---
+    const parsed = data.map((item) => ({
+      ...item,
+      time: new Date(item.TIME),
+      hour: new Date(item.TIME).getHours(),
+    }));
+
+    // --- B2. Group theo máy + giờ ---
+    const grouped = {};
+    for (const row of parsed) {
+      const key = `${row.FACTORY}|${row.LINE}|${row.LOCATION}|${row.hour}`;
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(row);
+    }
+
+    // --- B3. Tính số lượng cắt từng giờ cho từng máy ---
+    const perMachineHour = Object.entries(grouped).map(([key, rows]) => {
+      const [factory, line, location, hour] = key.split("|");
+      rows.sort((a, b) => a.time - b.time);
+      const minTotal = rows[0].TOTAL;
+      const maxTotal = rows[rows.length - 1].TOTAL;
+      const diff = maxTotal - minTotal;
+      return { factory, line, location, hour: Number(hour), diff };
+    });
+
+    // --- B4. Cộng gộp lại theo từng giờ (tổng tất cả máy) ---
+    const totalPerHour = {};
+    for (const row of perMachineHour) {
+      totalPerHour[row.hour] = (totalPerHour[row.hour] || 0) + row.diff;
+    }
+
+    // --- B5. Trả về danh sách kết quả sắp theo giờ ---
+    return Object.entries(totalPerHour)
+      .map(([hour, totalHourlyQty]) => ({
+        hour: Number(hour),
+        totalHourlyQty,
+      }))
+      .sort((a, b) => a.hour - b.hour);
+  }
+
+  const DataSeries = React.useMemo(() => {
+      return calculateHourlyCutQuantities(idata);
+    }, [idata]);
 
   // Cấu hình biểu đồ đường
   const options = {

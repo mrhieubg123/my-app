@@ -128,6 +128,16 @@ const TableErorOver5m = ({ idata = [], onShowModal }) => {
                 }}
                 align="center"
               >
+                Status
+              </TableCell>
+              <TableCell
+                style={{
+                  padding: "3px 6px",
+                  fontWeight: "bold",
+                  fontSize: "12px",
+                }}
+                align="center"
+              >
                 Counted Time
               </TableCell>
               <TableCell
@@ -145,9 +155,9 @@ const TableErorOver5m = ({ idata = [], onShowModal }) => {
           <TableBody>
             {displayItems.length > 0
               ? displayItems.map((row, index) => {
-                const status = checkTimeDifferenceStatus(row.end_time);
-                const colorText =
-                  status > 12 ? "#ff7373" : status > 8 ? "#d3bd50" : "";
+                  const status = checkTimeDifferenceStatus(row.end_time);
+                  const colorText =
+                    status > 12 ? "#ff7373" : status > 8 ? "#d3bd50" : "";
                   //   console.log('timeOver',row.end_time,timeOver)
                   return (
                     //,ERROR,ERROR_CODE,root_,EMP_confirm, act
@@ -191,6 +201,16 @@ const TableErorOver5m = ({ idata = [], onShowModal }) => {
                         }}
                       >
                         {row.return_qty || ""}
+                      </TableCell>
+                      <TableCell
+                        align="center"
+                        style={{
+                          color: colorText,
+                          padding: "3px",
+                          fontSize: "10px",
+                        }}
+                      >
+                        {row.status || ""}
                       </TableCell>
                       <TableCell
                         align="center"

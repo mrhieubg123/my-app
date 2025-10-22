@@ -11,6 +11,9 @@ import {
   MenuItem,
   Snackbar,
   Alert,
+  Stack,
+  Typography,
+  LinearProgress,
   Button,
 } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -18,19 +21,31 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import dayjs from "dayjs";
 import { getAuthorizedAxiosIntance } from "../../../../utils/axiosConfig";
-import { AddOutlined, EditOutlined, DeleteOutline } from "@mui/icons-material";
+import {
+  AddOutlined,
+  EditOutlined,
+  Download,
+  DeleteOutline,
+  UploadFile,
+} from "@mui/icons-material";
 
 const axiosInstance = await getAuthorizedAxiosIntance();
 
-const ForceDefaultDetail = ({
+const ForceDocummentDetail = ({
   idata = [],
   idataMachine = [],
   onModelChange,
 }) => {
-  const AVAILABLE_LINES = useMemo(
-    () => Array.from(new Set(idataMachine.map((r) => r.LINE))),
-    [idataMachine]
-  );
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [dataScrewDocummentUpload, setDataScrewDocummentUpload] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadFile, setUploadFile] = useState(null);
+  // const AVAILABLE_LINES = useMemo(
+  //   () => Array.from(new Set(idataMachine.map((r) => r.LINE))),
+  //   [idataMachine]
+  // );
+  const AVAILABLE_LINES = ["L06","T04","T06","T07","T08","T09","T10","T11"];
   const AVAILABLE_TYPES = ["Screw", "Glue", "Shielding"];
   const [newFolderDialogOpen6, setNewFolderDialogOpen6] = useState(false);
   const [formData, setFormData] = useState({
@@ -42,6 +57,21 @@ const ForceDefaultDetail = ({
     min: "",
     max: "",
   });
+
+  const fetchDataErrorHistory = async () => {
+    try {
+      const response = await axiosInstance.get(
+        "api/Screw/getDataScrewDocummentUpload"
+      );
+      setDataScrewDocummentUpload(response.data || []); // Cập nhật state
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchDataErrorHistory();
+  }, []);
 
   const columns = [
     {
@@ -57,28 +87,14 @@ const ForceDefaultDetail = ({
       minWidth: 100,
     },
     {
-      field: "LOCATION",
-      headerName: "Location",
+      field: "PATH",
+      headerName: "File",
       flex: 1, // tự chia chiều rộng
       minWidth: 100,
     },
     {
-      field: "NAME_MACHINE",
-      headerName: "Name",
-      flex: 1, // tự chia chiều rộng
-      minWidth: 100,
-      editable: true,
-    },
-    {
-      field: "MIN_FORCE",
-      headerName: "Min Force",
-      flex: 1, // tự chia chiều rộng
-      minWidth: 100,
-      editable: true,
-    },
-    {
-      field: "MAX_FORCE",
-      headerName: "Max Force",
+      field: "CREATED_AT",
+      headerName: "Created at",
       flex: 1, // tự chia chiều rộng
       minWidth: 100,
       editable: true,
@@ -98,12 +114,12 @@ const ForceDefaultDetail = ({
         return (
           <Box sx={{ display: "flex", gap: 0.5, justifyContent: "center" }}>
             <Button
-              title="Edit"
-              onClick={() => openDialogEdit(row)}
+              title="Download"
+              onClick={() => handleDownload(row.PATH)}
               sx={{ minWidth: "unset", backgroundColor: "#9994" }}
               size="small"
             >
-              <EditOutlined sx={{ fontSize: "0.8rem" }}></EditOutlined>
+              <Download sx={{ fontSize: "0.8rem" }}></Download>
             </Button>
             <Button
               title="Delete"
@@ -122,11 +138,11 @@ const ForceDefaultDetail = ({
 
   const rowsWithId = useMemo(
     () =>
-      idata.map((row, index) => ({
+      dataScrewDocummentUpload.map((row, index) => ({
         id: index, // hoặc row.LINE nếu unique
         ...row,
       })),
-    [idata]
+    [dataScrewDocummentUpload]
   );
 
   const openDialogAdd = () => {
@@ -136,7 +152,7 @@ const ForceDefaultDetail = ({
       type: "",
       min: "",
       max: "",
-      name:"",
+      name: "",
     });
     setNewFolderDialogOpen6(true);
   };
@@ -145,8 +161,6 @@ const ForceDefaultDetail = ({
     setFormData({
       id: row.ID,
       line: row.LINE,
-      min: row.MIN_FORCE,
-      max: row.MAX_FORCE,
       type: row.TYPE,
       location: row.LOCATION || "",
       name: row.NAME_MACHINE || "",
@@ -165,13 +179,14 @@ const ForceDefaultDetail = ({
 
   const onSave = () => {
     // Thêm logic kiểm tra dữ liệu hợp lệ tại đây (ví dụ: line và type không được trống)
-    if (!formData.line || !formData.type|| !formData.location|| !formData.min|| !formData.max) {
-      alert("Vui lòng chọn Line/Type/Location/Min Force/Max Force.");
+    if (!formData.line || !formData.type || !uploadFile) {
+      alert("Vui lòng chọn Line/Type/UploadFile.");
       return;
     }
 
     if (formData.id) handleEdit(formData);
-    else handleSave(formData);
+    // else handleSave(formData);
+    else upload();
   };
 
   const [toast, setToast] = useState({
@@ -228,14 +243,16 @@ const ForceDefaultDetail = ({
     //add item
     try {
       const reponse = await axiosInstance.post(
-        "api/screw/deleteDataForceDefault",
+        "api/screw/deleteScrewDocummentUpload",
         {
           id: row.ID,
+          path: row.PATH,
         }
       );
       if (reponse.data.success) {
         showToast(reponse.data.message);
-        onModelChange();
+        fetchDataErrorHistory();
+        // onModelChange();
       } else {
         showToast("Delete fail", "error");
       }
@@ -245,17 +262,76 @@ const ForceDefaultDetail = ({
     }
   };
 
-  console.log("idata", idata);
+  const handleDownload = async (filename) => {
+    const res = await fetch("/config.json");
+    const config = await res.json();
+
+    // filenameFromDB có thể là "uploads/1729_report.xlsx" hoặc "1729_report.xlsx"
+    const params = new URLSearchParams({ path: filename.replace('uploads/','') });
+    const url = `${
+      config.apiBaseUrl
+    }/api/screw/downloadScrewDocummentUpload?${params.toString()}`;
+
+    window.open(url, "_blank");
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    setUploadFile(file);
+  };
+  const handleDropOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const upload = async () => {
+    if (!uploadFile) return;
+    const formDataDocumment = new FormData();
+    formDataDocumment.append("file", uploadFile);
+    formDataDocumment.append("line", formData.line);
+    formDataDocumment.append("type", formData.type);
+    try {
+      setIsUploading(true);
+      setUploadProgress(0);
+
+      await axiosInstance.post(
+        `api/screw/uploadScrewDocumment`,
+        formDataDocumment,
+        {
+          onUploadProgress: (event) => {
+            const percent = Math.round((event.loaded * 100) / event.total);
+            setUploadProgress(percent);
+          },
+        }
+      );
+      showToast("✅ Upload thành công");
+      setUploadFile(null);
+      setNewFolderDialogOpen6(false);
+      fetchDataErrorHistory();
+    } catch (err) {
+      showToast(err.response?.data?.message || "❌ Upload thất bại", "error");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <Box sx={{ height: "100%", width: "100%" }}>
       <Dialog
         open={newFolderDialogOpen6}
         onClose={() => setNewFolderDialogOpen6(false)}
       >
-        <DialogTitle>
-          {formData.id ? "Edit" : "Add new"} item (Over time/Maintenance)
-        </DialogTitle>
-        <DialogContent sx={{ paddingTop: "8px !important", minWidth: "350px" }}>
+        <DialogTitle>{formData.id ? "Edit" : "Add new"} documment</DialogTitle>
+        <DialogContent sx={{ paddingTop: "8px !important", minWidth: "500px" }}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <Grid container spacing={3}>
               {/* 1. Line (Chọn trong danh sách) */}
@@ -295,47 +371,54 @@ const ForceDefaultDetail = ({
                   ))}
                 </TextField>
               </Grid>
-              <Grid item size={{ xs: 12 }} xs={12}>
-                <TextField
-                  label="Name machine (tên máy)"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  fullWidth
-                />
-              </Grid>
-              <Grid item size={{ xs: 4 }} xs={12}>
-                <TextField
-                  label="Location (vị trí)"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleChange}
-                  fullWidth
-                  required
-                />
-              </Grid>
-              {/* 5. Comment (Ghi chú) */}
-              <Grid item size={{ xs: 4 }} xs={12}>
-                <TextField
-                  label="Min Force"
-                  name="min"
-                  value={formData.min}
-                  onChange={handleChange}
-                  required
-                  fullWidth
-                />
-              </Grid>
-
-              {/* 6. ID Confirm (Người xác nhận) */}
-              <Grid item size={{ xs: 4 }} xs={12}>
-                <TextField
-                  label="Max Force"
-                  name="max"
-                  value={formData.max}
-                  onChange={handleChange}
-                  required
-                  fullWidth
-                />
+              <Grid>
+                <Box
+                  direction="row"
+                  spacing={2}
+                  alignItems="center"
+                  sx={{ mt: 1, height: "50px" }}
+                >
+                  <Button
+                    variant={isDragging ? "outlined" : "contained"}
+                    component="label"
+                    startIcon={<UploadFile />}
+                    sx={{ whiteSpace: "nowrap" }}
+                    onDrop={handleDrop}
+                    onDragOver={handleDropOver}
+                    onDragEnter={handleDragEnter}
+                    onDragLeave={handleDragLeave}
+                    color={isDragging ? "secondary" : "primary"}
+                  >
+                    Chọn file
+                    <input
+                      type="file"
+                      hidden
+                      onChange={(e) => setUploadFile(e.target.files[0])}
+                    />
+                  </Button>
+                  {/* <Button variant="contained" onClick={upload}>
+                  Upload
+                </Button> */}
+                  <Box sx={{ width: "100%" }}>
+                    {uploadFile && (
+                      <Typography variant="body2" sx={{ mt: 1 }}>
+                        File đã chọn: <strong>{uploadFile.name}</strong>
+                      </Typography>
+                    )}
+                    {isUploading && (
+                      <Box sx={{ width: "100%" }}>
+                        <LinearProgress
+                          variant="determinate"
+                          value={uploadProgress}
+                        ></LinearProgress>
+                        <Typography variant="caption">
+                          {" "}
+                          {uploadProgress}%{" "}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
               </Grid>
             </Grid>
           </LocalizationProvider>
@@ -403,4 +486,4 @@ const ForceDefaultDetail = ({
     </Box>
   );
 };
-export default ForceDefaultDetail;
+export default ForceDocummentDetail;

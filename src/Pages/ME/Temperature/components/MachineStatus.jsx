@@ -95,11 +95,11 @@ const TableTemperatureMachineStatus = ({ idata = [] }) => {
     console.log("columnsxx", columnsxx[indeM]);
     var machineInfo;
     if (!line) {
-      machineInfo = idata?.find(
+      machineInfo = [].find(
         (m) => m.LINE_NAME === "PT" && m.MACHINE_CODE === columnPT[indeM]
       );
     } else
-      machineInfo = idata?.find(
+      machineInfo = [].find(
         (m) => m.LINE_NAME === line.Line && m.MACHINE_CODE === columnsxx[indeM]
       );
 
@@ -185,7 +185,7 @@ const TableTemperatureMachineStatus = ({ idata = [] }) => {
   const renderMergedCell = () => {
     const projectStats = {}; // Dùng một object để lưu trữ thống kê theo project
 
-    idata.forEach((item) => {
+    [].forEach((item) => {
       const { LINE_NAME } = item;
       if (LINE_NAME != "PT") {
         // Đảm bảo project đã tồn tại trong projectStats

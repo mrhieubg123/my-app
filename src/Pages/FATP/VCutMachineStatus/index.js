@@ -1,65 +1,22 @@
-import React, {
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { memo, useEffect, useMemo, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import HiBox from "../../../components/HiBox";
-import {
-  Box,
-  Grid,
-  CardContent,
-  Switch,
-  Typography,
-  LinearProgress,
-  TableContainer,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Card,
-  lighten,
-  Button,
-} from "@mui/material";
-import { CheckCircle, Warning, Error, Close } from "@mui/icons-material";
+import { Grid } from "@mui/material";
 import MachineStatusHighchartsGrid from "./components/MachineStatus";
 import CABChart from "./components/CABChart";
-import HiProgressBar from "./components/FailureAnalysis";
-import AnalysisChart from "./components/AnalysisChart";
 import { getAuthorizedAxiosIntance } from "../../../utils/axiosConfig";
 import LineChart from "./components/LineChart";
-import RadialChart from "./components/RadialChart";
-import TableErorOver5m from "./components/tableErrorOver10m";
-import HiModal from "../../../components/HiModal";
-import TableError from "./components/tableError";
-import ErrorDetail from "./components/ErrorDetail";
-import AiSuggest from "./components/AiSuggest";
-import DryerStatusCard from "./components/TextComponent";
 import ESDTotal from "./components/ESDTotal";
 
 const axiosInstance = await getAuthorizedAxiosIntance();
 
 const VCutMachineStatus = () => {
   const paramState = useSelector((state) => state.param);
-  const [queryMain, setQueryMain] = useState({ arr: [], timet: "", datet: "" });
   const [queryDate, setQueryDate] = useState("");
-
-  const isFirstRender = useState(true);
-  const isFirstRender2 = useState(true);
-  const [showModal1, setShowModal1] = useState(false);
-  const [showModal2, setShowModal2] = useState(false);
-  const [isLoadingData, setIsLoadingData] = useState(null);
-  const [isLoadingData1, setIsLoadingData1] = useState(null);
-  const [isLoadingData2, setIsLoadingData2] = useState(null);
   const [dataVcutMachineStatus, setDataVcutMachineStatus] = useState([]);
-  const [dataFATPMachineTotalTrend, setDataFATPMachineTotalTrend] = useState(
+  const [dataVcutMachineTotalTrend, setDataVcutMachineTotalTrend] = useState(
     []
   );
-  const [dataFATPMachineAnalysis, setDataFATPMachineAnalysis] = useState([]);
 
   const legendItem = useMemo(
     () => [
@@ -71,14 +28,27 @@ const VCutMachineStatus = () => {
   );
 
   const fetchVcutMachineStatus = async () => {
-    setIsLoadingData(true);
     try {
       const response = await axiosInstance.get("api/vcut/getVcutMachineStatus");
       setDataVcutMachineStatus(response.data || []); // Cập nhật state
     } catch (error) {
       console.log(error.message);
-    } finally {
-      setIsLoadingData(false);
+    }
+  };
+
+  const fetchVcutMachineTotalTrend = async (model) => {
+    try {
+      const response = await axiosInstance.post(
+        "api/vcut/getDataVcutMachineTotalTrend",
+        model
+      );
+      setDataVcutMachineTotalTrend(response.data || []); // Cập nhật state
+      const lastesTimeStr = Object.values(response.data)
+        .map((item) => item.TIME)
+        .reduce((a, b) => (new Date(a) > new Date(b) ? a : b));
+      setQueryDate(new Date(lastesTimeStr).toISOString().slice(0, 10));
+    } catch (error) {
+      console.log(error.message);
     }
   };
 
@@ -89,6 +59,18 @@ const VCutMachineStatus = () => {
     }, 60000 * 60);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const newModel = {
+      dateFrom: paramState.params.starttime,
+      dateTo: paramState.params.endtime,
+    };
+    fetchVcutMachineTotalTrend(newModel);
+    const interval = setInterval(() => {
+      fetchVcutMachineTotalTrend();
+    }, 60000 * 5);
+    return () => clearInterval(interval);
+  }, [paramState.params.starttime, paramState.params.endtime]);
 
   const handleChangeDate = (idate) => {
     setQueryDate(idate);
@@ -104,8 +86,8 @@ const VCutMachineStatus = () => {
     };
 
     for (const row of data) {
-      if (row.DIFF >= CRITICAL_THRESHOLD) counts.OVER += 1;
-      else if (row.DIFF >= WARNING_THRESHOLD) counts.WARNING += 1;
+      if (row.TOTAL >= CRITICAL_THRESHOLD) counts.OVER += 1;
+      else if (row.TOTAL >= WARNING_THRESHOLD) counts.WARNING += 1;
       else counts.GOOD += 1;
     }
     return counts;
@@ -182,7 +164,8 @@ const VCutMachineStatus = () => {
           legendItem={legendItem}
         >
           <MachineStatusHighchartsGrid
-            idata={dataVcutMachineStatus} onCallBack={fetchVcutMachineStatus}
+            idata={dataVcutMachineStatus}
+            onCallBack={fetchVcutMachineStatus}
           ></MachineStatusHighchartsGrid>
         </HiBox>
       </Grid>
@@ -204,7 +187,7 @@ const VCutMachineStatus = () => {
           variant="filled"
         >
           <CABChart
-            idata={[1, 2, 3]}
+            idata={dataVcutMachineTotalTrend}
             onChangeDate={handleChangeDate}
           ></CABChart>
         </HiBox>
@@ -218,7 +201,12 @@ const VCutMachineStatus = () => {
           height="45vh"
           variant="filled"
         >
-          <LineChart idata={dataFATPMachineAnalysis}></LineChart>
+          <LineChart
+            idata={dataVcutMachineTotalTrend.filter(
+              (item) =>
+                new Date(item.TIME).toISOString().slice(0, 10) === queryDate
+            )}
+          ></LineChart>
         </HiBox>
       </Grid>
     </Grid>

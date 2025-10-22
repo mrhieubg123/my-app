@@ -124,6 +124,7 @@ const Header = ({ children, isSticky, isMini, isSmallScreen, toggleSidebar, togg
     '/FATP/FATPMachineControl':'A02-FATP Machine Control',
     '/FATP/GlueScrewStatus': 'A02-FATP Glue Screw Status',
     '/FATP/VCutMachineStatus': 'A02-FATP VCut Machine Status',
+    '/FATP/MaintenanceStatus': 'A02-FATP Maintenance Status',
 
     // Thêm các tiêu đề khác
   };

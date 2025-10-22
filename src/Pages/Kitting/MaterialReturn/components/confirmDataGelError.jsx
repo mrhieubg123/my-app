@@ -8,6 +8,8 @@ import {
   Typography,
   Box,
   IconButton,
+  Grid,
+  MenuItem,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close"; // Có thể dùng cho nút đóng dialog
 import LaptopMacIcon from "@mui/icons-material/LaptopMac"; // Ví dụ icon Foxconn
@@ -17,11 +19,12 @@ const axiosInstance = await getAuthorizedAxiosIntance();
 
 function ConfirmDataGelDialog({ open, onClose, initialData, onConfirmSucces }) {
   const user = useSelector((state) => state.auth.login.currentUser);
+  const AVAILABLE_TYPES = ["Online", "Wait count", "Empty"];
   const [formData, setFormData] = useState({
     wo: initialData?.wo || "", // Dữ liệu mặc định hoặc từ props
     tr_sn: initialData?.tr_sn || "", // Dữ liệu mặc định hoặc từ props
     comment: "",
-    type: "",
+    type: "Online",
   });
 
   const handleChange = (e) => {
@@ -40,7 +43,7 @@ function ConfirmDataGelDialog({ open, onClose, initialData, onConfirmSucces }) {
     });
     confirmDataGelError({
       wo: initialData.wo,
-      emp_confirm: 'V1034779',
+      emp_confirm: "V1034779",
       emp_no: initialData.emp_no,
       end_time: initialData.end_time,
       status: initialData.status,
@@ -76,7 +79,7 @@ function ConfirmDataGelDialog({ open, onClose, initialData, onConfirmSucces }) {
       wo: initialData?.wo || "", // Dữ liệu mặc định hoặc từ props
       tr_sn: initialData?.tr_sn || "", // Dữ liệu mặc định hoặc từ props
       comment: "",
-      type: "",
+      type: "Online",
     });
   }, [initialData]);
 
@@ -95,7 +98,7 @@ function ConfirmDataGelDialog({ open, onClose, initialData, onConfirmSucces }) {
       }}
       // Optional: Để dialog căn giữa màn hình và có khoảng cách xung quanh
       sx={{
-        zIndex: 100000,
+        // zIndex: 100000,
         "& .MuiDialog-paper": {
           maxWidth: "500px", // Chiều rộng tối đa của dialog
           width: "100%",
@@ -136,7 +139,6 @@ function ConfirmDataGelDialog({ open, onClose, initialData, onConfirmSucces }) {
         </IconButton>
       </DialogTitle>
       <DialogContent sx={{ p: 0 }}>
-        {" "}
         {/* p:0 để loại bỏ padding mặc định của DialogContent */}
         <Typography
           variant="h6"
@@ -208,38 +210,25 @@ function ConfirmDataGelDialog({ open, onClose, initialData, onConfirmSucces }) {
             }}
           />
         </Box>
-        {/* <Box sx={{ mb: 2 }}>
+        <Grid item size={{ xs: 12, sm: 6 }} xs={12} sm={6}>
           <Typography variant="body1" sx={{ color: "white", mb: 0.5 }}>
-            Date Time
+            TYPE
           </Typography>
           <TextField
-            fullWidth
-            name="dateTime"
-            value={formData.dateTime}
+            select
+            name="type"
+            value={formData.type}
             onChange={handleChange}
-            variant="outlined"
-            size="small"
-            InputProps={{
-              readOnly: true, // Nếu không cho phép chỉnh sửa
-              sx: {
-                backgroundColor: "#555",
-                color: "white",
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#777",
-                },
-                "&:hover .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#999",
-                },
-                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#fff",
-                },
-              },
-            }}
-            InputLabelProps={{
-              sx: { color: "#bbb" },
-            }}
-          />
-        </Box> */}
+            fullWidth
+            required
+          >
+            {AVAILABLE_TYPES.map((option) => (
+              <MenuItem key={option} value={option}>
+                {option}
+              </MenuItem>
+            ))}
+          </TextField>
+        </Grid>
         <Box sx={{ mb: 3 }}>
           <Typography variant="body1" sx={{ color: "white", mb: 0.5 }}>
             Comment
