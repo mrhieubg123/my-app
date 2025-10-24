@@ -73,8 +73,7 @@ const TableMachineStatus = ({
     const colorMap = useMemo(() => ({
             RUN: '#00e396',
             STOP: '#ffe636',
-            CUT: 'purple',
-            WARNING: 'pink',
+            CUT: 'pink',
             ERROR: '#ff3110',
             OFF: '#808080',
             NA: '#808080',

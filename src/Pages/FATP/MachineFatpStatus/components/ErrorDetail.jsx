@@ -1,125 +1,86 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { DataGrid } from "@mui/x-data-grid";
-import {
-  Box,
-  TableContainer,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Select,
-  MenuItem,
-  TableSortLabel,
-  Button,
-} from "@mui/material";
+import { Box, Typography, Button, Grid, Switch } from "@mui/material";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import HiBox from "../../../../components/HiBox";
+import Highcharts from "highcharts";
+import HighchartsReact from "highcharts-react-official";
+import { useTheme } from "@mui/material/styles";
+import imgMachine from "./image/machine.png";
+import imgRobot from "./image/robot.png";
 
 const ErrorDetail = ({ idata = [] }) => {
-  const [order, setOrder] = useState("asc");
-  const [orderBy, setOrderBy] = useState("name");
-  const [filterText, setFilterText] = useState("");
-  // state filters theo cột
-  const [filters, setFilters] = useState({
-    LINE: "",
-    MACHINE_NAME: "",
-    ERROR_TYPE: "",
-    ERROR_CODE: "",
-  });
+  const theme = useTheme();
+  const parentRef = useRef(null);
+  const [parentSize, setParentSize] = useState({ width: 0, height: 0 });
+  const [querryMachine, setQuerryMachine] = useState("");
+  const [switchMOL, setSwitchMOL] = useState(false);
 
-  // danh sách unique cho mỗi cột
-  const uniqueLine = useMemo(
-    () => Array.from(new Set(idata.map((r) => r.LINE))),
-    [idata]
-  );
-  const uniqueMachine = useMemo(
-    () => Array.from(new Set(idata.map((r) => r.MACHINE_NAME))),
-    [idata]
-  );
-  const uniqueErrorCode = useMemo(
-    () => Array.from(new Set(idata.map((r) => r.ERROR_CODE))),
-    [idata]
-  );
-  const uniqueErrorType = useMemo(
-    () => Array.from(new Set(idata.map((r) => r.ERROR_TYPE))),
-    [idata]
-  );
+  useEffect(() => {
+    const updateSize = () => {
+      if (parentRef.current) {
+        const { width, height } = parentRef.current.getBoundingClientRect();
+        setParentSize({ width, height });
+      }
+    };
 
-  // handle change
-  const handleFilterChange = (column) => (event) => {
-    setFilters((prev) => ({
-      ...prev,
-      [column]: event.target.value,
-    }));
-  };
-
-  // lọc dữ liệu
-  const filteredRows = useMemo(() => {
-    return idata.filter(
-      (row) =>
-        (filters.LINE === "" || row.LINE === filters.LINE) &&
-        (filters.MACHINE_NAME === "" ||
-          row.MACHINE_NAME === filters.MACHINE_NAME) &&
-        (filters.ERROR_CODE === "" || row.ERROR_CODE === filters.ERROR_CODE) &&
-        (filters.ERROR_TYPE === "" || row.ERROR_TYPE === filters.ERROR_TYPE)
-    );
-  }, [filters]);
-
-  function descendingComparator(a, b, orderBy) {
-    if (b[orderBy] < a[orderBy]) {
-      return -1;
+    const resizeObserver = new ResizeObserver(updateSize);
+    if (parentRef.current) {
+      resizeObserver.observe(parentRef.current);
     }
-    if (b[orderBy] > a[orderBy]) {
-      return 1;
-    }
-    return 0;
-  }
 
-  function getComparator(order, orderBy) {
-    return order === "desc"
-      ? (a, b) => descendingComparator(a, b, orderBy)
-      : (a, b) => -descendingComparator(a, b, orderBy);
-  }
+    return () => {
+      if (parentRef.current) {
+        resizeObserver.unobserve(parentRef.current);
+      }
+    };
+  }, []);
 
-  const handleRequestSort = (property) => {
-    const isAsc = orderBy === property && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
-    setOrderBy(property);
-  };
+  const tempError2 = React.useMemo(() => {
+    const tempError = {};
+    idata.forEach((item) => {
+      if (tempError[item.LINE + item.MACHINE_NAME]) {
+        tempError[item.LINE + item.MACHINE_NAME].Downtime +=
+          (item.TIME * 1) / 60;
+        tempError[item.LINE + item.MACHINE_NAME].Frequency += 1;
+      } else {
+        tempError[item.LINE + item.MACHINE_NAME] = {
+          Series: item.LINE + item.MACHINE_NAME,
+          Downtime: (item.TIME * 1) / 60,
+          Frequency: 1,
+        };
+      }
+    });
+    return tempError;
+  }, [idata]);
 
-  const sortedRows = idata.sort(getComparator(order, orderBy));
+  const dataSeries = React.useMemo(() => {
+    const List3 = Object.values(tempError2);
+    if (switchMOL) List3.sort((a, b) => b.Frequency - a.Frequency);
+    else List3.sort((a, b) => b.Downtime - a.Downtime);
+    if (List3.length > 5) return List3.slice(0, 5);
+    return List3;
+  }, [tempError2, switchMOL]);
 
-  const rowHeader = (key, value) => {
-    return (
-      <TableCell
-        sortDirection={orderBy === key ? order : false}
-        style={{
-          padding: "3px 6px",
-          fontWeight: "bold",
-          color: "#000",
-        }}
-        align="center"
-      >
-        <TableSortLabel
-          active={orderBy === key}
-          direction={orderBy === key ? order : "asc"}
-          onClick={() => handleRequestSort(key)}
-          sx={{
-            color: "black", // màu chữ
-            "& .MuiTableSortLabel-icon": {
-              color: "black !important", // màu icon arrow
-            },
-            "&.Mui-active": {
-              color: "black",
-            },
-          }}
-        >
-          {value}
-        </TableSortLabel>
-      </TableCell>
-    );
-  };
+  const dataDisplay = React.useMemo(() => {
+    if (querryMachine) {
+      return idata
+        .filter(
+          (item) =>
+            querryMachine.includes(item.LINE) &&
+            querryMachine.includes(item.MACHINE_NAME)
+        )
+        .map((row, index) => ({
+          id: index, // hoặc row.LINE nếu unique
+          ...row,
+        }));
+    } else
+      return idata.map((row, index) => ({
+        id: index, // hoặc row.LINE nếu unique
+        ...row,
+      }));
+  }, [idata, querryMachine]);
 
   const handleExportExel = () => {
     // 1. Chuyển mảng JSON thành worksheet
@@ -168,18 +129,6 @@ const ErrorDetail = ({ idata = [] }) => {
       minWidth: 100,
       editable: true,
     },
-    // {
-    //   field: "root",
-    //   headerName: "Root",
-    //   width: 150,
-    //   editable: true,
-    // },
-    // {
-    //   field: "solution",
-    //   headerName: "Solution",
-    //   width: 150,
-    //   editable: true,
-    // },
     {
       field: "START_TIME",
       headerName: "Start time",
@@ -212,294 +161,237 @@ const ErrorDetail = ({ idata = [] }) => {
       editable: true,
       renderCell: (params) => (
         <div style={{ whiteSpace: "normal", wordWrap: "break-word" }}>
-          {((params.value || 0)/60).toFixed(2)}m
+          {((params.value || 0) / 60).toFixed(2)}m
         </div>
       ),
     },
-    // {
-    //   field: "confirm",
-    //   headerName: "Emp confirm",
-    //   width: 150,
-    //   editable: true,
-    // },
   ];
 
-  const rowsWithId = idata.map((row, index) => ({
-    id: index, // hoặc row.LINE nếu unique
-    ...row,
-  }));
-
-  console.log("idata", idata);
-  return (
-    <Box sx={{ height: "100%", width: "100%" }}>
-      <Button
-        sx={{ marginLeft: "15px" }}
-        variant="contained"
-        color="error"
-        onClick={handleExportExel}
-      >
-        Export exel
-      </Button>
-      <DataGrid
-        rows={rowsWithId}
-        columns={columns}
-        initialState={{
-          pagination: {
-            paginationModel: {
-              pageSize: 10,
+  const options = React.useMemo(
+    () => ({
+      chart: {
+        type: "column",
+        backgroundColor: "transparent",
+        reflow: true,
+        height: parentSize.height,
+      },
+      title: {
+        text: `Top 5 machine error`,
+        style: {
+          color: theme.palette.chart.color,
+        },
+      },
+      xAxis: {
+        categories: dataSeries.map((item) => item.Series),
+        title: {
+          text: "",
+        },
+        labels: {
+          style: {
+            fontSize: "12px",
+            color: theme.palette.chart.color, // Màu chữ trên trục Y
+          },
+        },
+      },
+      yAxis: {
+        labels: {
+          format: "{value}",
+          style: {
+            fontSize: "12px",
+            color: theme.palette.chart.color, // Màu chữ trên trục Y
+          },
+        },
+        title: {
+          text: "",
+          style: {
+            color: theme.palette.chart.color,
+          },
+        },
+        tickAmount: 3,
+        opposite: false,
+      },
+      tooltip: {
+        pointFormat: switchMOL ? "<b>{point.y}</b>" : "<b>{point.y:.2f}</b>",
+      },
+      series: [
+        {
+          name: switchMOL ? "Frequency" : "Downtime",
+          type: "column",
+          data: switchMOL
+            ? dataSeries.map((item) =>
+                // đảm bảo là number; làm tròn hiển thị bằng dataLabels/tooltip
+                Number(item?.Frequency ?? 0)
+              )
+            : dataSeries.map((item) =>
+                // đảm bảo là number; làm tròn hiển thị bằng dataLabels/tooltip
+                Number(item?.Downtime ?? 0)
+              ),
+          color: switchMOL
+            ? {
+                linearGradient: {
+                  x1: 0,
+                  y1: 0,
+                  x2: 0,
+                  y2: 1,
+                },
+                stops: [
+                  [0, "#ff3110"],
+                  [1, "#ff311000"],
+                ],
+              }:{
+                linearGradient: {
+                  x1: 0,
+                  y1: 0,
+                  x2: 0,
+                  y2: 1,
+                },
+                stops: [
+                  [0, "#2099f5"],
+                  [1, "#2099f500"],
+                ],
+              }
+            ,
+          dataLabels: {
+            enabled: true,
+            format: switchMOL ? "{y}" : "{y:.2f}", // hiển thị value trên cột
+          },
+        },
+      ],
+      credits: {
+        enabled: false,
+      },
+      exporting: {
+        enabled: false,
+      },
+      plotOptions: {
+        series: {
+          dataLabels: {
+            enabled: true,
+            color: theme.palette.chart.color,
+            style: {
+              textOutline: "none",
             },
           },
-        }}
-        pageSizeOptions={[10]}
-        sx={{
-          height: "90%",
-          backgroundColor: "transparent",
-          "& .MuiDataGrid-columnHeader": {
-            backgroundColor: "transparent !important",
+          point: {
+            events: {
+              click: function () {
+                const cat = this.category;
+                setQuerryMachine((prev) => (prev === cat ? "" : cat));
+              },
+            },
           },
-          "& .MuiDataGrid-cell": {
-            whiteSpace: "normal",
-            wordBreak: "break-word",
-            lineHeight: "1.3",
-            py: 1, // padding top/bottom
-            alignItems: "flex-start", // ensure top alignment when multi-line
-          },
-        }}
-      />
-    </Box>
+        },
+      },
+      legend: {
+        align: "left",
+        verticalAlign: "top",
+        style: {
+          color: theme.palette.chart.color, // Màu chữ trên trục Y
+        },
+        labels: {
+          useSeriesColors: true,
+        },
+        itemStyle: {
+          color: theme.palette.chart.color, // Màu chữ legend
+        },
+      },
+    }),
+    [theme, dataSeries, parentSize]
   );
 
   return (
-    <Box sx={{ height: "100%" }}>
-      <Button
-        sx={{ marginLeft: "15px" }}
-        variant="contained"
-        color="error"
-        onClick={handleExportExel}
+    <Grid sx={{ height: "100%" }} container columns={12}>
+      <HiBox lg={4} md={4} xs={4} alarn={false} height="36vh" variant="filled">
+        <Box
+          component={"div"}
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            width: "100%",
+            height: "100%",
+          }}
+        >
+          <Box
+            component="img"
+            align="center"
+            src={querryMachine.includes("_RB") ? imgRobot : imgMachine}
+            sx={{ height: "100%" }}
+          />
+        </Box>
+      </HiBox>
+      <HiBox lg={8} md={8} xs={8} alarn={false} height="36vh" variant="filled">
+        <div ref={parentRef} style={{ height: "100%", display: "block" }}>
+          <Switch
+            labels={"sad"}
+            checked={switchMOL}
+            onChange={() => {
+              setSwitchMOL((prev) => !prev);
+            }}
+            sx={{ position: "absolute", top: 0, right: 0, zIndex: 2 }}
+            defaultChecked
+          ></Switch>
+
+          <HighchartsReact highcharts={Highcharts} options={options} />
+        </div>
+      </HiBox>
+      <HiBox
+        lg={12}
+        md={12}
+        xs={12}
+        alarn={false}
+        height="36vh"
+        variant="filled"
       >
-        Export exel
-      </Button>
-      <TableContainer
-        sx={{
-          overflow: "auto",
-          height: "90%",
-          "&::-webkit-scrollbar": { width: 0, opacity: 0 },
-          "&:hover::-webkit-scrollbar": { width: 4, opacity: 1 },
-          "&::-webkit-scrollbar-thumb": {
-            backgroundColor: "#cdcdcd8c",
-            borderRadius: "10px",
-          },
-        }}
-      >
-        <Table sx={{ borderSpacing: "0 8px" }} aria-label="customized table">
-          <TableHead
-            sx={{ position: "sticky", top: "0", backgroundColor: "#f6f7f5" }}
+        <Box sx={{ display: "flex", alignItems: "flex-end" }}>
+          <Button
+            sx={{ marginLeft: "15px" }}
+            variant="contained"
+            color="error"
+            onClick={handleExportExel}
           >
-            <TableRow>
-              <TableCell
-                style={{
-                  padding: "3px 6px",
-                  fontWeight: "bold",
-                  color: "#000",
-                }}
-              >
-                No.
-              </TableCell>
-              {rowHeader("LINE", "Line")}
-              {rowHeader("MACHINE_NAME", "Machine")}
-              {rowHeader("ERROR_CODE", "Error Code")}
-              {rowHeader("ERROR_TYPE", "Error")}
-              <TableCell
-                style={{
-                  padding: "3px 6px",
-                  fontWeight: "bold",
-                  color: "#000",
-                }}
-                align="center"
-              >
-                Root
-              </TableCell>
-              <TableCell
-                style={{
-                  padding: "3px 6px",
-                  fontWeight: "bold",
-                  color: "#000",
-                }}
-                align="center"
-              >
-                Action
-              </TableCell>
-              {rowHeader("TIME", "Time")}
-              {rowHeader("START_TIME", "Start Time")}
-              {rowHeader("END_TIME", "End Time")}
-              <TableCell
-                style={{
-                  padding: "3px 6px",
-                  fontWeight: "bold",
-                  color: "#000",
-                }}
-                align="center"
-              >
-                Emp Confirm
-              </TableCell>
-            </TableRow>
-            {/* hàng filter dropdown */}
-            <TableRow>
-              <TableCell>
-                <Select
-                  value={filters.LINE}
-                  onChange={handleFilterChange("LINE")}
-                  displayEmpty
-                  size="small"
-                  fullWidth
-                >
-                  <MenuItem value="">Line</MenuItem>
-                  {uniqueLine.map((n) => (
-                    <MenuItem key={n} value={n}>
-                      {n}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </TableCell>
-              <TableCell>
-                <Select
-                  value={filters.MACHINE_NAME}
-                  onChange={handleFilterChange("MACHINE_NAME")}
-                  displayEmpty
-                  size="small"
-                  fullWidth
-                >
-                  <MenuItem value="">Machine</MenuItem>
-                  {uniqueMachine.map((a) => (
-                    <MenuItem key={a} value={a}>
-                      {a}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </TableCell>
-              <TableCell>
-                <Select
-                  value={filters.ERROR_CODE}
-                  onChange={handleFilterChange("ERROR_CODE")}
-                  displayEmpty
-                  size="small"
-                  fullWidth
-                >
-                  <MenuItem value="">Error code</MenuItem>
-                  {uniqueErrorCode.map((c) => (
-                    <MenuItem key={c} value={c}>
-                      {c}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </TableCell>
-              <TableCell>
-                <Select
-                  value={filters.ERROR_TYPE}
-                  onChange={handleFilterChange("ERROR_TYPE")}
-                  displayEmpty
-                  size="small"
-                  fullWidth
-                >
-                  <MenuItem value="">Error type</MenuItem>
-                  {uniqueErrorType.map((d) => (
-                    <MenuItem key={d} value={d}>
-                      {d}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {idata.length > 0
-              ? sortedRows.map(
-                  (
-                    row,
-                    index //,ERROR,ERROR_CODE,root_,EMP_confirm, act
-                  ) => (
-                    <TableRow key={index}>
-                      <TableCell
-                        component="th"
-                        scope="row"
-                        style={{ padding: "6px", color: "#000" }}
-                      >
-                        {index + 1 || ""}
-                      </TableCell>
-                      <TableCell
-                        align="center"
-                        style={{ padding: "3px 6px", color: "#000" }}
-                      >
-                        {row.LINE || ""}
-                      </TableCell>
-                      <TableCell
-                        align="center"
-                        style={{ padding: "3px 6px", color: "#000" }}
-                      >
-                        {row[`MACHINE_NAME`] || ""}
-                      </TableCell>
-                      <TableCell
-                        align="center"
-                        style={{ padding: "3px 6px", color: "#000" }}
-                      >
-                        {row[`ERROR_CODE`] || ""}
-                      </TableCell>
-                      <TableCell
-                        align="center"
-                        style={{ padding: "3px 6px", color: "#000" }}
-                      >
-                        {row[`ERROR_TYPE`] || ""}
-                      </TableCell>
-                      <TableCell
-                        align="center"
-                        style={{ padding: "3px 6px", color: "#000" }}
-                      >
-                        {row[`CAUSE`] || ""}
-                      </TableCell>
-                      <TableCell
-                        align="center"
-                        style={{ padding: "3px 6px", color: "#000" }}
-                      >
-                        {row[`SOLUTION`] || ""}
-                      </TableCell>
-                      <TableCell
-                        align="center"
-                        style={{ padding: "3px 6px", color: "#000" }}
-                      >
-                        {row.TIME && ((row.TIME * 1) / 60).toFixed(2)}m
-                      </TableCell>
-                      <TableCell
-                        align="center"
-                        style={{ padding: "3px 6px", color: "#000" }}
-                      >
-                        {row[`START_TIME`] &&
-                          row[`START_TIME`]
-                            .replace("T", " ")
-                            .replace(".000Z", "")}
-                      </TableCell>
-                      <TableCell
-                        align="center"
-                        style={{ padding: "3px 6px", color: "#000" }}
-                      >
-                        {row[`END_TIME`] &&
-                          row[`END_TIME`]
-                            .replace("T", " ")
-                            .replace(".000Z", "")}
-                      </TableCell>
-                      <TableCell
-                        align="center"
-                        style={{ padding: "3px 6px", color: "#000" }}
-                      >
-                        {row.NAME || ""}
-                      </TableCell>
-                    </TableRow>
-                  )
-                )
-              : ""}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Box>
+            Export exel
+          </Button>
+          <Typography
+            sx={{
+              float: "left",
+              marginLeft: "10px",
+              color: "#3ce3ab",
+              fontSize: "1rem",
+            }}
+          >
+            {querryMachine || ""}
+          </Typography>
+        </Box>
+
+        <DataGrid
+          rows={dataDisplay}
+          columns={columns}
+          initialState={{
+            pagination: {
+              paginationModel: {
+                pageSize: 10,
+              },
+            },
+          }}
+          pageSizeOptions={[10]}
+          sx={{
+            height: "90%",
+            backgroundColor: "transparent",
+            "& .MuiDataGrid-columnHeader": {
+              backgroundColor: "transparent !important",
+            },
+            "& .MuiDataGrid-cell": {
+              whiteSpace: "normal",
+              wordBreak: "break-word",
+              lineHeight: "1.3",
+              py: 1, // padding top/bottom
+              alignItems: "flex-start", // ensure top alignment when multi-line
+            },
+          }}
+        />
+      </HiBox>
+    </Grid>
   );
 };
 export default ErrorDetail;

@@ -44,11 +44,15 @@ const axiosInstance = await getAuthorizedAxiosIntance();
 
 const FATPMachine = () => {
   const paramState = useSelector((state) => state.param);
-  const [queryMain, setQueryMain] = useState({ arr: [], timet: "", datet: "" });
+  const [queryMain, setQueryMain] = useState({
+    arr: [],
+    dateFrom: "",
+    dateTo: "",
+  });
   const [queryDate, setQueryDate] = useState("");
 
-  const isFirstRender = useState(true);
-  const isFirstRender2 = useState(true);
+  const isFirstRender = useRef(true);
+  const isFirstRender2 = useRef(true);
   const [showModal1, setShowModal1] = useState(false);
   const [showModal2, setShowModal2] = useState(false);
   const [showModal3, setShowModal3] = useState(false);
@@ -78,22 +82,12 @@ const FATPMachine = () => {
     () => [
       { color: "#00e396", label: "Run" },
       { color: "#fdfd00", label: "Stop" },
-      { color: "pink", label: "Warning" },
-      { color: "purple", label: "Rest" },
+      { color: "pink", label: "Rest" },
       { color: "#ff3110", label: "Error" },
       { color: "#808080", label: "Off" },
     ],
     []
   );
-
-  const [queryData, setQueryData] = useState({
-    line: "",
-    lane: "",
-    station: "",
-    dateFrom: "",
-    dateTo: "",
-    top: "",
-  });
 
   const fetchFATPMachineStatus = async () => {
     setIsLoadingData(true);
@@ -244,34 +238,35 @@ const FATPMachine = () => {
   };
 
   useEffect(() => {
-    const newModel = {
-      dateFrom: paramState.params.starttime,
-      dateTo: paramState.params.endtime,
-    };
-    setQueryMain((prev) => ({
-      ...prev,
-      dateFrom: paramState.params.starttime,
-      dateTo: paramState.params.endtime,
-    }));
     fetchFATPMachineStatus();
     const interval = setInterval(() => {
       fetchFATPMachineStatus();
     }, 5000);
     return () => clearInterval(interval);
-  }, [paramState.params.starttime, paramState.params.endtime]);
+  }, []);
 
+  // useEffect(() => {
+  //   setQueryMain((prev) => ({
+  //     ...prev,
+  //     dateFrom: paramState.params.starttime,
+  //     dateTo: paramState.params.endtime,
+  //   }));
+  // }, [paramState.params.starttime, paramState.params.endtime]);
+
+  // const queryMainKey = useMemo(() => JSON.stringify(queryMain), [queryMain]);
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-    fetchFATPMachineTotalTrend(queryMain);
+    const newMo = {
+      arr: queryMain.arr,
+      dateFrom: paramState.params.starttime,
+      dateTo: paramState.params.endtime,
+    };
+    fetchFATPMachineTotalTrend(newMo);
     fetchFATPMachineErrorDetail({ error: "" });
     const interval = setInterval(() => {
-      fetchFATPMachineTotalTrend(queryMain);
+      fetchFATPMachineTotalTrend(newMo);
     }, 30 * 60000);
     return () => clearInterval(interval);
-  }, [queryMain]);
+  }, [queryMain, paramState.params.starttime, paramState.params.endtime]);
 
   useEffect(() => {
     if (isFirstRender2.current) {
@@ -288,13 +283,13 @@ const FATPMachine = () => {
     fetchFATPMachineAnalysis(newMo);
     fetchFATPErrorDetail(newMo);
     fetchFATPMachineError5m(newMo);
-    const interval = setInterval(() => {
-      fetchFATPMachineAnalysis(newMo);
-      fetchFATPMachineError5m(newMo);
-      fetchFATPErrorDetail(newMo);
-    }, 30 * 60000);
-    return () => clearInterval(interval);
-  }, [queryDate, queryMain]);
+    // const interval = setInterval(() => {
+    //   fetchFATPMachineAnalysis(newMo);
+    //   fetchFATPMachineError5m(newMo);
+    //   fetchFATPErrorDetail(newMo);
+    // }, 30 * 60000);
+    // return () => clearInterval(interval);
+  }, [queryDate]);
 
   const handleChangeMain = useCallback((model) => {
     setQueryMain((prev) => ({
@@ -765,8 +760,8 @@ const FATPMachine = () => {
             header={`Error details`}
             open={showModal1}
             onClose={() => setShowModal1(false)}
-            widthModal={80}
-            heightModal={80}
+            widthModal={60}
+            heightModal={85}
           >
             <ErrorDetail idata={dataFATPErrorDetailFilter}></ErrorDetail>
           </HiModal>
