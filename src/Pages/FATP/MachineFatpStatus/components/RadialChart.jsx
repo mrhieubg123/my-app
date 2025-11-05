@@ -74,7 +74,7 @@ const RadialChart = ({ title = "", dataFATPErrorDetail = [], color = [], idata =
 
   const seriesData = [
     {
-      name: "OEE",
+      name: "Availability",
       value: (((totalOK * 100) / total) * 1).toFixed(2) * 1,
     },
     {

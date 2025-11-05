@@ -143,8 +143,8 @@ const DataTemperatureScreen = () => {
 
   return (
     <Grid container columns={12}>
-      <Grid lg={12} md={12} xs={12} container columns={12}>
-        <Grid lg={12} md={12} xs={12} container columns={12}>
+      <Grid size={{ lg: 12, md: 12, xs: 12 }} lg={12} md={12} xs={12} container columns={12}>
+        <Grid size={{ lg: 12, md: 12, xs: 12 }} lg={12} md={12} xs={12} container columns={12}>
           {cardComponent(
             "Total Machine",
             dataTemperatureMachineStatus.length,

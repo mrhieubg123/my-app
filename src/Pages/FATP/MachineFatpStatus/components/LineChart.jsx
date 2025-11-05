@@ -70,10 +70,35 @@ const LineChart = ({
       name: LINE,
       data: data.sort((a,b) => a[0] - b[0]),
     }));
+    console.log('series',series)
     const seriesLength = series.length > 0 ? series.map(item => item.data.length) : [];
     const maxLength = seriesLength.length > 0 ?  Math.max(...seriesLength.map(e => e), 0) : 1;
 
-    
+
+// 1) Tạo categories đã sắp xếp
+const categories = React.useMemo(() => {
+  const set = new Set();
+  series.forEach(s => s.data.forEach(([t]) => set.add(t))); // gom all times
+  return Array.from(set).sort((a, b) => {
+    const [ah, am] = a.split(':').map(Number);
+    const [bh, bm] = b.split(':').map(Number);
+    return (ah*60 + am) - (bh*60 + bm);
+  });
+}, [series]);
+
+// 2) (Khuyên dùng) map x sang index để tránh “tạo category mới”
+const catIndex = React.useMemo(
+  () => Object.fromEntries(categories.map((c, i) => [c, i])),
+  [categories]
+);
+
+const alignedSeries = React.useMemo(() =>
+  series.map(s => ({
+    ...s,
+    data: s.data.map(([t, y]) => [catIndex[t], y]), // dùng index thay vì chuỗi
+    connectNulls: true
+  }))
+, [series, catIndex]);
 
   // Cấu hình biểu đồ đường
   const options = {
@@ -88,6 +113,7 @@ const LineChart = ({
     },
     xAxis: {
       type: 'category',
+      categories,
       labels: {
         style: {
           fontSize: "12px",
@@ -95,7 +121,7 @@ const LineChart = ({
         },
       },
       // tickInterval : 2,
-      tickInterval: maxLength > 15 ? 3 : maxLength > 8 ? 2 : ''
+      tickInterval: maxLength > 15 ? 3 : maxLength > 8 ? 2 : 1
       // labels:{
       //   format: `{value:%H:%M}`
       // }
@@ -103,7 +129,7 @@ const LineChart = ({
     yAxis: {
       max: 100,
       title: {
-        text: "OEE",
+        text: "Availability",
         
         style:{
           color: '#999',
@@ -119,7 +145,7 @@ const LineChart = ({
       tickAmount: 3,
       
     },
-    series: series,
+    series: alignedSeries,
     credits: {
       enabled: false, // Tắt logo Highcharts ở góc
     },

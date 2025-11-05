@@ -134,7 +134,7 @@ const CABChart = ({idata =[], queryJSON = {}, onChangeDate}) => {
 
       },
   },{
-        name: 'OEE',
+        name: 'Availability',
         type: 'spline',
         yAxis:0,
         data:  ErrorList.map(item => parseFloat((item["VOK"] * 100 / (item["VOK"] + item["VNG"]) * 1).toFixed(2))),

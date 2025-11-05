@@ -20,6 +20,7 @@ const ChatBot = ({ isOpen, isPin, onStateChange, onFileChange }) => {
   const [isLoading, setIsLoading] = useState(false);
   const theme = useTheme();
   const [isVisible, setIsVisible] = useState(true);
+  const [isModeFactory, setIsModeFactory] = useState(true);
   const [position, setPosition] = useState({ bottom: 25, right: 35 });
   const user = useSelector((state) => state.auth.login.currentUser);
 
@@ -127,7 +128,8 @@ const ChatBot = ({ isOpen, isPin, onStateChange, onFileChange }) => {
                 ? dayjs(data.params.endtime).format("YYYY-MM-DD") + " 23:59:59"
                 : data.params.endtime
                 ? dayjs(data.params.endtime).format("YYYY-MM-DD HH:mm:ss")
-                : dayjs(data.params.starttime).format("YYYY-MM-DD") + " 23:59:59"
+                : dayjs(data.params.starttime).format("YYYY-MM-DD") +
+                  " 23:59:59"
               : null,
           },
           topic: {
@@ -142,7 +144,7 @@ const ChatBot = ({ isOpen, isPin, onStateChange, onFileChange }) => {
         })
       );
     } catch (error) {
-      console.error("Error fetching chatbot:", error);
+      console.error("Error fetching chatbot:", error); 
 
       setMessages((prev) => {
         const newMessages = [...prev];
@@ -170,6 +172,7 @@ const ChatBot = ({ isOpen, isPin, onStateChange, onFileChange }) => {
     const modal = {
       id_page: `/${paramState.page.dep}/${paramState.page.page_name}`,
       id_user: `${user.username}`,
+      modeFactory: isModeFactory,
       msg: message,
     };
     setMessages((prev) => [
@@ -327,6 +330,8 @@ const ChatBot = ({ isOpen, isPin, onStateChange, onFileChange }) => {
         <ChatHeader
           onClose={handleOpenChat}
           toggleChat={toggleChat}
+          changeMode={()=>setIsModeFactory((prev) => !prev)}
+          isFactory={isModeFactory}
           isPin={isPin}
         ></ChatHeader>
         <ChatWindow setFile={handleSetFile} messages={messages}></ChatWindow>

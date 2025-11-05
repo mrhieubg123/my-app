@@ -108,11 +108,18 @@ const FATPMachine = () => {
         "api/Fatp/FATPMachineTotalTrend",
         model
       );
-      setDataFATPMachineTotalTrend(response.data || []); // Cập nhật state
-      const lastesTimeStr = Object.values(response.data)
-        .map((item) => item.DATET)
-        .reduce((a, b) => (new Date(a) > new Date(b) ? a : b));
-      setQueryDate(lastesTimeStr); // Lấy thời gian mới nhất
+      const data = response.data || [];
+      setDataFATPMachineTotalTrend(data);
+
+      if (data.length > 0) {
+        const lastesTimeStr = data
+          .map((item) => item.DATET)
+          .reduce((a, b) => (new Date(a) > new Date(b) ? a : b));
+        setQueryDate(lastesTimeStr);
+      } else {
+        // Nếu không có dữ liệu thì có thể set về null hoặc ngày hiện tại
+        setQueryDate(null);
+      } // Lấy thời gian mới nhất
     } catch (error) {
       console.log(error.message);
     } finally {
@@ -273,8 +280,6 @@ const FATPMachine = () => {
       isFirstRender2.current = false;
       return;
     }
-    console.log("queryMain", queryMain);
-    console.log("queryDate", queryDate);
     const newMo = {
       arr: queryMain.arr,
       dateFrom: queryDate ? queryDate + " 00:00:00" : "",
@@ -289,7 +294,7 @@ const FATPMachine = () => {
     //   fetchFATPErrorDetail(newMo);
     // }, 30 * 60000);
     // return () => clearInterval(interval);
-  }, [queryDate]);
+  }, [queryMain, queryDate]);
 
   const handleChangeMain = useCallback((model) => {
     setQueryMain((prev) => ({

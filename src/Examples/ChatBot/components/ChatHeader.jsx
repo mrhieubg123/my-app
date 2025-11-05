@@ -1,11 +1,11 @@
 import React from "react";
 import {Box, Typography, IconButton} from "@mui/material";
-import { Close } from "@mui/icons-material";
+import { Close, Reddit, SmartToy } from "@mui/icons-material";
 import {RiPushpinFill, RiUnpinFill} from "react-icons/ri"
 import chatBot from '../components/img/chatBot.gif';
 
 
-const ChatHeader = ({onClose, toggleChat, isPin}) =>{
+const ChatHeader = ({onClose, toggleChat, isPin, isFactory, changeMode}) =>{
 
     return (
         <Box
@@ -26,6 +26,9 @@ const ChatHeader = ({onClose, toggleChat, isPin}) =>{
             </Box>
            
             <Box>
+                <IconButton color="inherit" size="small" onClick={changeMode}>
+                    {isFactory ? <Reddit/> : <SmartToy/>}
+                </IconButton>
                 <IconButton onClick={toggleChat}>
                     {isPin ? <RiPushpinFill color="#fff"/> : <RiUnpinFill color="#fff"/>}
                 </IconButton>

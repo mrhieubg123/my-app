@@ -20,9 +20,9 @@ const VCutMachineStatus = () => {
 
   const legendItem = useMemo(
     () => [
-      { color: "#00e396", label: "Good" },
-      { color: "#f1c40f", label: "Warning" },
-      { color: "#ff3110", label: "Over" },
+      { color: "#00e396", label: "Good(<450,000)" },
+      { color: "#f1c40f", label: "Warning(>450,000)" },
+      { color: "#ff3110", label: "Over(>500,000)" },
     ],
     []
   );

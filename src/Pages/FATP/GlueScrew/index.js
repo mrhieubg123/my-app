@@ -12,6 +12,7 @@ import HiModal from "../../../components/HiModal";
 import ESDTotal from "./components/ESDTotal";
 import { Description, Build } from "@mui/icons-material";
 import ForceDefaultDetail from "./components/ForceDefaultDetail";
+import ForceFileExplorer from "./components/ForceDocummentFolder";
 import ForceDocummentDetail from "./components/ForceDocummentDetail";
 import RotatingModeSelector from "./components/CircularSliderMUI";
 
@@ -242,17 +243,17 @@ const GlueScrewStatus = () => {
           }
         >
           <HiModal
-            header={`Force Documment Detail`}
+            header={`Documment`}
             open={showModal2}
             onClose={() => setShowModal2(false)}
             widthModal={80}
             heightModal={80}
           >
-            <ForceDocummentDetail
+            <ForceFileExplorer
               idata={dataForceDefault}
               idataMachine={dataScrewMachineStatus}
               onModelChange={fetchDataForceDefault}
-            ></ForceDocummentDetail>
+            ></ForceFileExplorer>
           </HiModal>
           <HiModal
             header={`Force Default Detail`}

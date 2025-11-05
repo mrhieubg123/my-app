@@ -100,7 +100,7 @@ const DataGelScreen = () => {
 
     return (
         <Grid container columns={12}>
-            <Grid lg={3} md={3} xs={12} container columns={12} >
+            <Grid size={{ lg: 3, md: 3, xs: 12 }} lg={3} md={3} xs={12} container columns={12} >
                 <HiBox lg={12} md={12} xs={12} alarn={false} height="30vh" variant="filled" >
                     <Box component={'div'} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%' }}>
                         <Box
@@ -118,7 +118,7 @@ const DataGelScreen = () => {
                     <HiProgressBar DataSeries={dataGelListError} type={'Machine'} Colors={['linear-gradient(90deg,#ff311055,#ff3110)  ', 'linear-gradient(90deg,#fdfd0055,#fdfd00) ']} Labels={['Frequecy Error', 'Frequecy Alarm']} />
                 </HiBox>
             </Grid>
-            <Grid lg={9} md={9} xs={12} container columns={12} >
+            <Grid size={{ lg: 9, md: 9, xs: 12 }} lg={9} md={9} xs={12} container columns={12} >
                 <HiBox lg={6} md={6} xs={12} alarn={false} header="Machine Gel Status" height="45vh" variant="filled" legendItem={legendItemGel}>
                     <MachineGelStatusTable idata={dataGelMachineStatus} />
                 </HiBox>
