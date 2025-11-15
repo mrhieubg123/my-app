@@ -14,9 +14,13 @@ export async function getAuthorizedAxiosIntance(){
     const res = await fetch('/config.json');
     const configJson = await res.json();
 
+    const baseURL = window.location.hostname.startsWith("10.228.121.39")
+  ? configJson.apiBaseUrl121
+  : configJson.apiBaseUrl;
+
     // tao axios intance
     authorizedAxiosIntance = axios.create({
-        baseURL: configJson.apiBaseUrl,
+        baseURL: baseURL,
         timeout: 1000*60*15,
         // withCredentials: true
     });

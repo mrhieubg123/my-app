@@ -110,7 +110,12 @@ export default function ForceFileExplorer() {
     }
   };
 
-  const fetchFiles = async (folder, password = "") => {
+  const fetchFiles = async (folder, password = "", folderFile) => {
+    if (folderFile && folderFile.hasPassword) {
+      setAccessDialogOpen(true);
+      setSelectedFolderForPassword(folder);
+      return;
+    }
     if (!folder) return;
     try {
       const res = await axiosInstance.get(`${API}/files`, {
@@ -245,10 +250,11 @@ export default function ForceFileExplorer() {
   const handleDownload = async (filename) => {
     const res = await fetch("/config.json");
     const configJson = await res.json();
+    const baseURL = window.location.hostname.startsWith("10.228.121.39")
+      ? configJson.apiBaseUrl121
+      : configJson.apiBaseUrl;
     window.open(
-      `${
-        configJson.apiBaseUrl
-      }${API}/download/${selectedFolder}/${filename}?password=${encodeURIComponent(
+      `${baseURL}${API}/download/${selectedFolder}/${filename}?password=${encodeURIComponent(
         accessPassword
       )}`,
       "_blank"
@@ -339,11 +345,11 @@ export default function ForceFileExplorer() {
     fetchFolders();
   }, []);
 
-  useEffect(() => {
-    if (selectedFolder) {
-      fetchFiles(selectedFolder);
-    }
-  }, [selectedFolder]);
+  // useEffect(() => {
+  //   if (selectedFolder) {
+  //     fetchFiles(selectedFolder);
+  //   }
+  // }, [selectedFolder]);
 
   return (
     <Box p={3} sx={{ display: "flex", height: "90vh", gap: 2 }}>
@@ -387,7 +393,7 @@ export default function ForceFileExplorer() {
               key={folder.name}
               button
               selected={folder.name === selectedFolder}
-              onClick={() => fetchFiles(folder.name)}
+              onClick={() => fetchFiles(folder.name, "", folder)}
               sx={{ height: "50px", borderBottom: "1px solid #999" }}
             >
               <ListItemText

@@ -45,7 +45,16 @@ const ForceDocummentDetail = ({
   //   () => Array.from(new Set(idataMachine.map((r) => r.LINE))),
   //   [idataMachine]
   // );
-  const AVAILABLE_LINES = ["L06","T04","T06","T07","T08","T09","T10","T11"];
+  const AVAILABLE_LINES = [
+    "L06",
+    "T04",
+    "T06",
+    "T07",
+    "T08",
+    "T09",
+    "T10",
+    "T11",
+  ];
   const AVAILABLE_TYPES = ["Screw", "Glue", "Shielding"];
   const [newFolderDialogOpen6, setNewFolderDialogOpen6] = useState(false);
   const [formData, setFormData] = useState({
@@ -265,12 +274,14 @@ const ForceDocummentDetail = ({
   const handleDownload = async (filename) => {
     const res = await fetch("/config.json");
     const config = await res.json();
-
+    const baseURL = window.location.hostname.startsWith("10.228.121.39")
+      ? config.apiBaseUrl121
+      : config.apiBaseUrl;
     // filenameFromDB có thể là "uploads/1729_report.xlsx" hoặc "1729_report.xlsx"
-    const params = new URLSearchParams({ path: filename.replace('uploads/','') });
-    const url = `${
-      config.apiBaseUrl
-    }/api/screw/downloadScrewDocummentUpload?${params.toString()}`;
+    const params = new URLSearchParams({
+      path: filename.replace("uploads/", ""),
+    });
+    const url = `${baseURL}/api/screw/downloadScrewDocummentUpload?${params.toString()}`;
 
     window.open(url, "_blank");
   };

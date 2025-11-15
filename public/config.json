@@ -1,3 +1,4 @@
 {
-    "apiBaseUrl": "http://localhost:3030"
+    "apiBaseUrl": "http://localhost:3030",
+    "apiBaseUrl121": "http://10.228.121.39:3030"
 }
