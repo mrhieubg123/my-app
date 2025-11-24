@@ -5,7 +5,7 @@ import { Box, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 // Khởi tạo module 3D
 
-const CABChart = ({ idata = [], queryJSON = {}, onChangeDate }) => {
+const CABChart = ({ idata = [], onChangeDate }) => {
   const theme = useTheme();
   const parentRef = useRef(null);
   const [parentSize, setParentSize] = useState({ width: 0, height: 0 });
@@ -18,20 +18,19 @@ const CABChart = ({ idata = [], queryJSON = {}, onChangeDate }) => {
   idata &&
     idata.forEach((item) => {
       if (temp[item.DATET]) {
-        temp[item.DATET].VOK += item.PASS_COUNT;
-        temp[item.DATET].VNG += item.FAIL_COUNT;
+        temp[item.DATET].VOK += item.OK * 1;
+        temp[item.DATET].VNG += item.NG * 1;
       } else {
         temp[item.DATET] = {
           DATET: item.DATET,
-          VOK: item.PASS_COUNT,
-          VNG: item.FAIL_COUNT,
+          VOK: item.OK * 1,
+          VNG: item.NG * 1,
         };
       }
     });
-  var ErrorList = Object.values(temp);
+  const ErrorList = Object.values(temp);
 
   ErrorList.sort((a, b) => new Date(a.DATET) - new Date(b.DATET));
-  ErrorList = ErrorList.slice(0, 7);
 
   useEffect(() => {
     const updateSize = () => {
@@ -53,6 +52,55 @@ const CABChart = ({ idata = [], queryJSON = {}, onChangeDate }) => {
     };
   }, []);
 
+  function calculateTotalDailyCuts(data) {
+    // --- B1. Chuẩn hóa dữ liệu ---
+    const parsed = data.map((item) => ({
+      ...item,
+      time: new Date(item.TIME),
+      date: new Date(item.TIME).toISOString().slice(0, 10),
+    }));
+
+    // --- B2. Gom nhóm theo factory, line, location, date ---
+    const grouped = {};
+    for (const row of parsed) {
+      const key = `${row.FACTORY}|${row.LINE}|${row.LOCATION}|${row.date}`;
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(row);
+    }
+
+    // --- B3. Tính dailyQty cho từng nhóm ---
+    const perMachine = Object.entries(grouped).map(([key, rows]) => {
+      const [factory, line, location, date] = key.split("|");
+      rows.sort((a, b) => a.time - b.time);
+      const maxTotalChange = rows.reduce(
+        (max, item) => (item.TOTAL > max ? item.TOTAL : max),
+        -Infinity
+      );
+      const minTotal = rows[0].TOTAL;
+      const maxTotal = rows[rows.length - 1].TOTAL;
+      const dailyQty =
+        maxTotal !== maxTotalChange
+          ? maxTotalChange - minTotal + maxTotal
+          : maxTotal - minTotal;
+      return { factory, line, location, date, dailyQty };
+    });
+
+    // --- B4. Tổng hợp theo ngày (cộng tất cả máy) ---
+    const totalPerDay = {};
+    for (const row of perMachine) {
+      totalPerDay[row.date] = (totalPerDay[row.date] || 0) + row.dailyQty;
+    }
+
+    // --- B5. Trả ra dạng list ---
+    return Object.entries(totalPerDay)
+      .map(([date, totalDailyQty]) => ({ date, totalDailyQty }))
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+  }
+
+  const DataSeries = React.useMemo(() => {
+    return calculateTotalDailyCuts(idata);
+  }, [idata]);
+
   // Dữ liệu cấu hình cho biểu đồ
   const options = {
     chart: {
@@ -65,7 +113,7 @@ const CABChart = ({ idata = [], queryJSON = {}, onChangeDate }) => {
       text: "",
     },
     xAxis: {
-      categories: ErrorList.map((item) => item["DATET"]),
+      categories: DataSeries.map((item) => item["date"]),
       title: {
         text: "",
       },
@@ -77,25 +125,6 @@ const CABChart = ({ idata = [], queryJSON = {}, onChangeDate }) => {
       },
     },
     yAxis: [
-      {
-        min: 0,
-        max: 100,
-        labels: {
-          format: "{value}%",
-          style: {
-            fontSize: "12px",
-            color: theme.palette.chart.color, // Màu chữ trên trục Y
-          },
-        },
-        title: {
-          text: "",
-          style: {
-            color: Highcharts.getOptions().colors[1],
-          },
-        },
-        tickAmount: 3,
-        opposite: true,
-      },
       {
         labels: {
           format: "{value}",
@@ -116,11 +145,11 @@ const CABChart = ({ idata = [], queryJSON = {}, onChangeDate }) => {
     ],
     series: [
       {
-        name: "Frequency",
+        name: "Quanlity",
         type: "column",
         borderWidth: 0,
-        yAxis: 1,
-        data: ErrorList.map((item) => item["VNG"] + item["VOK"]),
+        yAxis: 0,
+        data: DataSeries.map((item) => item["totalDailyQty"]),
         color: {
           linearGradient: {
             x1: 0,
@@ -135,36 +164,6 @@ const CABChart = ({ idata = [], queryJSON = {}, onChangeDate }) => {
         },
         dataLabels: {
           color: "#00e396",
-          fontSize: "11px",
-        },
-      },
-      {
-        name: "Pass",
-        type: "spline",
-        yAxis: 0,
-        data: ErrorList.map((item) =>
-          parseFloat(
-            (((item["VOK"] * 100) / (item["VOK"] + item["VNG"])) * 1).toFixed(2)
-          )
-        ),
-        color: "#00e396",
-        dataLabels: {
-          color: "#00e396",
-          fontSize: "11px",
-        },
-      },
-      {
-        name: "Fail Rate",
-        type: "spline",
-        yAxis: 0,
-        data: ErrorList.map((item) =>
-          parseFloat(
-            (((item["VNG"] * 100) / (item["VOK"] + item["VNG"])) * 1).toFixed(2)
-          )
-        ),
-        color: "#ff3110",
-        dataLabels: {
-          color: "#ff3110",
           fontSize: "11px",
         },
       },

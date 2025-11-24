@@ -168,6 +168,7 @@ const SidebarContent = ({ isMini ,selectedItem, setSelectedItem}) => {
         { label: 'Glue Screw Status', icon: <LensOutlinedIcon />, path: '/FATP/GlueScrewStatus'  },
         { label: 'VCut Machine Status', icon: <LensOutlinedIcon />, path: '/FATP/VCutMachineStatus'  },
         { label: 'Maintenance', icon: <LensOutlinedIcon />, path: '/FATP/MaintenanceStatus'  },
+        { label: 'Voltage Monitor', icon: <LensOutlinedIcon />, path: '/FATP/VoltageMonitor'  },
       ],
     },
   ];

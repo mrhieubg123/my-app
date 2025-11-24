@@ -2,25 +2,25 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Alert, Autocomplete, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, Grid, InputLabel, Menu, MenuItem, Select, Snackbar, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography} from '@mui/material';
 import HiBox from '../../../components/HiBox';
 import { useNotification } from "../../../components/HiNotification";
-import MachineStatus from './conpornent/MachineStatus';
+import MachineStatus from './components/MachineStatus';
 import { AddOutlined} from '@mui/icons-material';
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { useTheme } from '@mui/material/styles';
 import { getAuthorizedAxiosIntance } from '../../../utils/axiosConfig';
-import TableMachineStatus from './conpornent/MachineStatus copy';
-import MachineTotal from './conpornent/MachineTotal';
-import ListProducts from './conpornent/ListProducts';
-import EquipmentInStock from './conpornent/EquipmentInStock';
-import TableEquipmentUse from './conpornent/TableEquipmentUse';
-import ListProductsUseInMonth from './conpornent/ListProductsUseInMonth';
-import PieChart from './conpornent/PieChart';
+import TableMachineStatus from './components/MachineStatus copy';
+import MachineTotal from './components/MachineTotal';
+import ListProducts from './components/ListProducts';
+import EquipmentInStock from './components/EquipmentInStock';
+import TableEquipmentUse from './components/TableEquipmentUse';
+import ListProductsUseInMonth from './components/ListProductsUseInMonth';
+import PieChart from './components/PieChart';
 import { useSelector, useDispatch } from 'react-redux';
 
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs,{Dayjs} from 'dayjs';
-import LineChart from './conpornent/LineChart';
+import LineChart from './components/LineChart';
 
 const axiosInstance = await getAuthorizedAxiosIntance();
 

@@ -19,7 +19,7 @@ const TableMachineStatus = ({
     const [progress, setProgress] = useState(0);
     const columns = idata.length > 0 ? Object.keys(idata[0]).map((keycol) => keycol.replace('LINE','')) : columnsxx
 
-    const filterColumn = columns.filter(key => !['Project', 'Line'].includes(key));
+    const filterColumn = columns.filter(key => !['PROJECT', 'LINE'].includes(key));
 
     const handleCellClick = (row,col, station) =>{
         const cellValue = `${columns[col]}`;
@@ -79,6 +79,7 @@ const TableMachineStatus = ({
         }),[])
 
     const renderStatusCell = (val) => {
+        console.log('renderStatusCell',val)
         const lVal = val && val?.split('-sta-')[1].split('/-/').map(item => item.split('//')[1]);
         const minVal = lVal.length > 0 ? lVal.reduce((min, num) => num*1 < min*1 ? num : min) : 0 ;
         const status = minVal && minVal <= 0 ? 'ERROR' : minVal <= 5*24 ? 'OFF' : 'RUN'
@@ -130,10 +131,10 @@ const TableMachineStatus = ({
                     <Table sx={{ borderSpacing: "0 8px" , height: "100%" }} aria-label="customized table">
                         <TableHead sx={{position:'sticky', top: '0',backgroundColor: theme.palette.background.conponent, zIndex: '10'}}>
                         <TableRow>
-                            <TableCell key={'Project'} style={{padding:'6px', textAlign:'center',fontWeight: "bold"}}>Project</TableCell>
-                            <TableCell key={'Line'} style={{padding:'6px', textAlign:'center',fontWeight: "bold"}}>Line</TableCell>
+                            <TableCell key={'PROJECT'} style={{padding:'6px', textAlign:'center',fontWeight: "bold"}}>Project</TableCell>
+                            <TableCell key={'LINE'} style={{padding:'6px', textAlign:'center',fontWeight: "bold"}}>Line</TableCell>
                             {idata.length > 0 && Object.keys(idata[0]).map((keycol) =>(
-                                keycol !== 'Line' && keycol !== 'Project' ? 
+                                keycol !== 'LINE' && keycol !== 'PROJECT' ? 
                                 <TableCell key={keycol} style={{padding:'6px', textAlign:'center',fontWeight: "bold"}}>{keycol}</TableCell>:''
                             ))}
                         </TableRow>
@@ -145,8 +146,8 @@ const TableMachineStatus = ({
                                     const cellKey = `${rowIndex}-${cellIndex}`;
                                     const isSelected = selectedCells.has(cellKey);
                                     return (
-                                    <TableCell  key={cellIndex} style={{paddingLeft:'6px',paddingRight:'6px',paddingTop: 'unset', paddingBottom: 'unset', whiteSpace: 'nowrap', textAlign:'center' , background: isSelected ? key !== 'Line' ? '#219af144' : '#219af1' : '' , cursor: 'pointer'}}>
-                                        {key !== 'Line' && key !== 'Project' ? 
+                                    <TableCell  key={cellIndex} style={{paddingLeft:'6px',paddingRight:'6px',paddingTop: 'unset', paddingBottom: 'unset', whiteSpace: 'nowrap', textAlign:'center' , background: isSelected ? key !== 'LINE' ? '#219af144' : '#219af1' : '' , cursor: 'pointer'}}>
+                                        {key !== 'LINE' && key !== 'PROJECT' ? 
                                             row[key] !== null &&
                                                 <HiHoverReveal  rowIndex={rowIndex} cellIndex={cellIndex}
                                                     trigger={
