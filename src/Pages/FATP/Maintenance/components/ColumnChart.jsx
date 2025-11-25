@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Box, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 
-const ColumnChart = ({ idata = [], onModelChange, onModelChange2 }) => {
+const ColumnChart = ({ idata = [], onCallBack }) => {
   const theme = useTheme();
   const parentRef = useRef(null);
   const [parentSize, setParentSize] = useState({ width: 0, height: 0 });
@@ -29,6 +29,21 @@ const ColumnChart = ({ idata = [], onModelChange, onModelChange2 }) => {
     };
   }, []);
 
+  const uniqueFirstByLine = Object.values(
+    idata.reduce((acc, item) => {
+      if (!acc[item.LINE]) {
+        acc[item.LINE] = []; // chỉ lấy lần đầu tiên LINE xuất hiện
+      }
+      acc[item.LINE].push(item);
+      return acc;
+    }, {})
+  );
+  const series = Object.entries(uniqueFirstByLine)
+    .map(([LINE, data]) => ({
+      name: data[0].LINE,
+      data: data,
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
   const options = React.useMemo(
     () => ({
       chart: {
@@ -40,18 +55,7 @@ const ColumnChart = ({ idata = [], onModelChange, onModelChange2 }) => {
         text: "",
       },
       xAxis: {
-        categories: [
-          "L06",
-          "T04",
-          "T06",
-          "T07",
-          "T08",
-          "T09",
-          "T10",
-          "T11",
-          "T12-A",
-          "T12-B",
-        ],
+        categories: series.map((item) => item.name),
         title: {
           text: "",
         },
@@ -106,7 +110,9 @@ const ColumnChart = ({ idata = [], onModelChange, onModelChange2 }) => {
           point: {
             events: {
               click: function () {
-                //   handleInputChange(this.category);
+                const p = this; // Highcharts Point
+                console.log(p);
+                onCallBack(idata.filter((item) => item.LINE === p.category));
               },
             },
           },
@@ -118,7 +124,7 @@ const ColumnChart = ({ idata = [], onModelChange, onModelChange2 }) => {
           type: "column",
           borderWidth: 0,
           yAxis: 0,
-          data: [9, 15, 17, 15, 13, 15, 12, 16, 9, 9],
+          data: series.map((item) => item.data.length),
           color: {
             linearGradient: {
               x1: 0,
@@ -141,7 +147,10 @@ const ColumnChart = ({ idata = [], onModelChange, onModelChange2 }) => {
           type: "column",
           borderWidth: 0,
           yAxis: 0,
-          data: [9, 15, 17, 15, 13, 15, 12, 16, 0, 0],
+          data: series.map(
+            (item) =>
+              item.data.filter((item) => item.STATUS_NAME === "approve").length
+          ),
           color: {
             linearGradient: {
               x1: 0,
@@ -164,7 +173,7 @@ const ColumnChart = ({ idata = [], onModelChange, onModelChange2 }) => {
         enabled: false,
       },
     }),
-    [theme, parentSize]
+    [theme, parentSize, idata]
   );
 
   return (

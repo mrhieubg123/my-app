@@ -3,27 +3,88 @@ import { useSelector } from "react-redux";
 import HiBox from "../../../components/HiBox";
 import { Grid } from "@mui/material";
 import ColumnChart from "./components/ColumnChart";
-import TableMaintenancePlan from "./components/FailureAnalysis";
+import TableMaintenancePlan from "./components/TableMaintenancePlan";
 import { getAuthorizedAxiosIntance } from "../../../utils/axiosConfig";
 import RadialChart from "./components/RadialChart";
-import TableMaintenanceHistory from "./components/tableErrorOver10m";
+import TableMaintenanceHistory from "./components/TableMaintenanceHistory";
 import HiModal from "../../../components/HiModal";
 import ErrorDetail from "./components/ErrorDetail";
 
 const axiosInstance = await getAuthorizedAxiosIntance();
+const MONTH_ABBR = [
+  "JAN",
+  "FEB",
+  "MAR",
+  "APR",
+  "MAY",
+  "JUN",
+  "JUL",
+  "AUG",
+  "SEP",
+  "OCT",
+  "NOV",
+  "DEC",
+];
 
 const MaintenanceStatus = () => {
   const paramState = useSelector((state) => state.param);
   const [showModal3, setShowModal3] = useState(false);
-  const [dataFATPMachineStatus, setDataFATPMachineStatus] = useState([]);
-
+  const [dataMaintenancePlan, setDataMaintenancePlan] = useState([]);
+  const [dataMaintenancePlanSelect, setDataMaintenancePlanSelect] = useState(
+    []
+  );
+  const [monthSelect, setMonthSelect] = useState(null);
   const [dataFATPMachineAnalysis, setDataFATPMachineAnalysis] = useState([]);
   const [dataFATPMachineError5m, setDataFATPMachineError5m] = useState([]);
   const [dataFATPErrorDetail, setDataFATPErrorDetail] = useState([]);
   const [dataMaintenanceDetailFilter, setDataMaintenanceDetailFilter] =
     useState([]);
-  const [switchLiAnMa, setSwitchLiAnMa] = useState(false);
   const [Data6, setData6] = useState({});
+
+  const fetchMaintenancePlan = async (model) => {
+    try {
+      const response = await axiosInstance.post(
+        "api/maintenance/getMaintenancePlanApi",
+        model
+      );
+      setDataMaintenancePlan(response.data || []); // Cập nhật state
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+  function getMonthAbbrFromDate(dateStr) {
+    if (!dateStr) return null; // hoặc ""
+    // dateStr dạng "YYYY-MM-DD"
+    const monthIndex = Number(dateStr.slice(5, 7)) - 1; // "11" -> 10
+    return MONTH_ABBR[monthIndex] || null;
+  }
+
+  useEffect(() => {
+    const newMo = {
+      dateFrom: paramState.params.starttime,
+      dateTo: paramState.params.endtime,
+    };
+    fetchMaintenancePlan(newMo);
+  }, [paramState.params.starttime, paramState.params.endtime]);
+
+  useEffect(() => {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    if (monthSelect == null) {
+      setDataMaintenancePlanSelect(
+        dataMaintenancePlan.filter(
+          (item) =>
+            getMonthAbbrFromDate(item.DATE_CHECK) ===
+            getMonthAbbrFromDate(todayStr)
+        )
+      );
+    } else {
+      setDataMaintenancePlanSelect(
+        dataMaintenancePlan.filter(
+          (item) => getMonthAbbrFromDate(item.DATE_CHECK) === monthSelect
+        )
+      );
+    }
+  }, [dataMaintenancePlan, monthSelect]);
 
   const openModalMaintenanceDetails = (data) => {
     setDataMaintenanceDetailFilter(data);
@@ -59,7 +120,7 @@ const MaintenanceStatus = () => {
             <ErrorDetail idata={dataMaintenanceDetailFilter}></ErrorDetail>
           </HiModal>
           <RadialChart
-            idata={dataFATPMachineAnalysis}
+            idata={dataMaintenancePlanSelect}
             dataFATPErrorDetail={dataFATPErrorDetail}
             onCallBack={openModalMaintenanceDetails}
           ></RadialChart>
@@ -72,13 +133,7 @@ const MaintenanceStatus = () => {
           variant="filled"
           height="52vh"
         >
-          <TableMaintenancePlan
-            idata={dataFATPErrorDetail}
-            DataSeries={Data6.DataSeries}
-            Colors={Data6.colors}
-            Labels={Data6.labels}
-            keyFilter={switchLiAnMa ? "MACHINE_NAME" : "LINE"}
-          />
+          <TableMaintenancePlan idata={dataMaintenancePlanSelect} />
         </HiBox>
       </Grid>
       <Grid
@@ -99,7 +154,8 @@ const MaintenanceStatus = () => {
           variant="filled"
         >
           <ColumnChart
-            idata={dataFATPMachineStatus}
+            idata={dataMaintenancePlanSelect}
+            onCallBack={openModalMaintenanceDetails}
           ></ColumnChart>
         </HiBox>
         <HiBox
@@ -112,7 +168,9 @@ const MaintenanceStatus = () => {
           variant="filled"
         >
           <TableMaintenanceHistory
-            idata={dataFATPMachineError5m}
+            idata={dataMaintenancePlan}
+            monthSelect={monthSelect}
+            onCallBack={(value) => setMonthSelect(value)}
           ></TableMaintenanceHistory>
         </HiBox>
       </Grid>

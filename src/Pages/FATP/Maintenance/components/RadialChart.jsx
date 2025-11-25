@@ -23,20 +23,24 @@ const RadialChart = ({
   const [parentSize, setParentSize] = useState({ width: 0, height: 0 });
   const [showModal1, setShowModal1] = useState(false);
 
-  const totalOK =
-    idata.length > 0
-      ? idata
-          .filter((item) => item.STATUS === "OK")
-          .reduce((sum, item) => sum + item.TOTALTIME, 0)
-      : 0;
-  const totalNG =
-    idata.length > 0
-      ? idata
-          .filter((item) => item.STATUS === "NG")
-          .reduce((sum, item) => sum + item.TOTALTIME, 0)
-      : 0;
+  // 1. Total OK = số record có STATUS_NAME = 'approve'
+  const totalOK = idata.filter(
+    (item) => item.STATUS_NAME && item.STATUS_NAME.toLowerCase() === "approve"
+  );
 
-  const total = totalOK * 1 + totalNG * 1;
+  // 2. Total OnGoing = STATUS_NAME = null và DATE_CHECK >= ngày hiện tại
+  // Giả sử DATE_CHECK luôn ở format 'YYYY-MM-DD'
+  const todayStr = new Date().toISOString().slice(0, 10); // ví dụ: '2025-11-24'
+
+  const totalOnGoing = idata.filter(
+    (item) => item.STATUS_NAME == null && item.DATE_CHECK >= todayStr
+  );
+
+  const totalDelay = idata.filter(
+    (item) => item.STATUS_NAME == null && item.DATE_CHECK < todayStr
+  );
+
+  const total = totalOK.length + totalDelay.length + totalOnGoing.length;
 
   useEffect(() => {
     const updateSize = () => {
@@ -57,49 +61,6 @@ const RadialChart = ({
       }
     };
   }, []);
-  const radiusConfig = React.useMemo(
-    () => [
-      { outer: "100%", inner: "88%" },
-      { outer: "85%", inner: "73%" },
-      { outer: "70%", inner: "58%" },
-      { outer: "55%", inner: "43%" },
-      { outer: "40%", inner: "28%" },
-      { outer: "25%", inner: "13%" },
-    ],
-    []
-  );
-  const colorConfig = [
-    "#2099f5",
-    "#ff3110",
-    "#219af5",
-    "#ff5733",
-    "#33ff57",
-    "#3357ff",
-  ];
-
-  const seriesData = [
-    {
-      name: "Availability",
-      value: (((totalOK * 100) / total) * 1).toFixed(2) * 1,
-    },
-    {
-      name: "DownTime Rate",
-      value: (((totalNG * 100) / total) * 1).toFixed(2) * 1,
-    },
-  ];
-
-  const series = seriesData.map((item, index) => ({
-    name: item.name,
-    data: [
-      {
-        color: colorConfig[index],
-        radius: radiusConfig[index].outer,
-        innerRadius: radiusConfig[index].inner,
-        y: item.value,
-      },
-    ],
-    style: { fontSize: "12px" },
-  }));
 
   const options = React.useMemo(
     () => ({
@@ -115,10 +76,14 @@ const RadialChart = ({
 
             if (!customLabel) {
               customLabel = chart.options.chart.custom.label = chart.renderer
-                .label(`TOTAL<br/> <strong>${total}</strong>`)
-
+                .label("", 0, 0) // text để trống, lát nữa set
                 .add();
             }
+
+            // 🔴 Luôn update text ở đây (mỗi lần render)
+            customLabel.attr({
+              text: `TOTAL<br/><strong>${total}</strong>`,
+            });
 
             customLabel.css({
               color: theme.palette.primary.conponent,
@@ -184,7 +149,13 @@ const RadialChart = ({
             events: {
               click: function () {
                 const p = this; // Highcharts Point
-                onCallBack();
+                if (p.name === "Approved") {
+                  onCallBack(totalOK);
+                } else if (p.name === "Ongoing") {
+                  onCallBack(totalOnGoing);
+                } else {
+                  onCallBack(totalDelay);
+                }
                 // onSliceClick({
                 //   name: p.name,
                 //   y: p.y,
@@ -206,7 +177,7 @@ const RadialChart = ({
           data: [
             {
               name: "Approved",
-              y: 72,
+              y: totalOK.length,
               // color: "#4caf50",
               color: {
                 linearGradient: {
@@ -223,7 +194,7 @@ const RadialChart = ({
             },
             {
               name: "Ongoing",
-              y: 38,
+              y: totalOnGoing.length,
               color: {
                 linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
                 stops: [
@@ -234,7 +205,7 @@ const RadialChart = ({
             },
             {
               name: "Delay",
-              y: 12,
+              y: totalDelay.length,
               color: {
                 linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
                 stops: [
@@ -250,14 +221,14 @@ const RadialChart = ({
         enabled: false,
       },
     }),
-    [theme, parentSize]
+    [theme, parentSize, idata]
   );
   return (
     <div ref={parentRef} style={{ height: "100%", display: "block" }}>
       {[1].length > 0 ? (
         <>
           <HiModal
-            header={`Error details`}
+            header={`Maintenance plan details`}
             open={showModal1}
             onClose={() => setShowModal1(false)}
             widthModal={80}
