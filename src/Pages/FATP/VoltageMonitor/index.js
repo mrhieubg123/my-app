@@ -14,7 +14,8 @@ const axiosInstance = await getAuthorizedAxiosIntance();
 const VoltageMonitorDashboard = () => {
   const paramState = useSelector((state) => state.param);
   const [queryDate, setQueryDate] = useState("");
-  const [dataVcutMachineStatus, setDataVcutMachineStatus] = useState([]);
+  const [dataVoltageMonitorMachineStatus, setDataVoltageMonitorMachineStatus] =
+    useState([]);
   const [dataVcutMachineTotalTrend, setDataVcutMachineTotalTrend] = useState(
     []
   );
@@ -30,24 +31,10 @@ const VoltageMonitorDashboard = () => {
 
   const fetchVcutMachineStatus = async () => {
     try {
-      const response = await axiosInstance.get("api/vcut/getVcutMachineStatus");
-      setDataVcutMachineStatus(response.data || []); // Cập nhật state
-    } catch (error) {
-      console.log(error.message);
-    }
-  };
-
-  const fetchVcutMachineTotalTrend = async (model) => {
-    try {
-      const response = await axiosInstance.post(
-        "api/vcut/getDataVcutMachineTotalTrend",
-        model
+      const response = await axiosInstance.get(
+        "api/Voltage/getVoltageMonitorMachineStatus"
       );
-      setDataVcutMachineTotalTrend(response.data || []); // Cập nhật state
-      const lastesTimeStr = Object.values(response.data)
-        .map((item) => item.TIME)
-        .reduce((a, b) => (new Date(a) > new Date(b) ? a : b));
-      setQueryDate(new Date(lastesTimeStr).toISOString().slice(0, 10));
+      setDataVoltageMonitorMachineStatus(response.data || []); // Cập nhật state
     } catch (error) {
       console.log(error.message);
     }
@@ -57,43 +44,20 @@ const VoltageMonitorDashboard = () => {
     fetchVcutMachineStatus();
     const interval = setInterval(() => {
       fetchVcutMachineStatus();
-    }, 60000 * 60);
+    }, 60000 * 5);
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    const newModel = {
-      dateFrom: paramState.params.starttime,
-      dateTo: paramState.params.endtime,
-    };
-    fetchVcutMachineTotalTrend(newModel);
-    const interval = setInterval(() => {
-      fetchVcutMachineTotalTrend();
-    }, 60000 * 5);
-    return () => clearInterval(interval);
-  }, [paramState.params.starttime, paramState.params.endtime]);
+  const MIN_THRESHOLD = 14.5;
+  const MAX_THRESHOLD = 15.5;
+  const errorCount = useMemo(() => {
+    return dataVoltageMonitorMachineStatus.filter((x) =>
+      x.KCN.split("-")
+        .map(Number)
+        .some((v) => v < MIN_THRESHOLD || v > MAX_THRESHOLD)
+    ).length;
+  }, [dataVoltageMonitorMachineStatus]);
 
-  const handleChangeDate = (idate) => {
-    setQueryDate(idate);
-  };
-
-  const CRITICAL_THRESHOLD = 500000;
-  const WARNING_THRESHOLD = 450000;
-  const TotalStatus = (data) => {
-    const counts = {
-      GOOD: 0,
-      WARNING: 0,
-      OVER: 0,
-    };
-
-    for (const row of data) {
-      if (row.TOTAL >= CRITICAL_THRESHOLD) counts.OVER += 1;
-      else if (row.TOTAL >= WARNING_THRESHOLD) counts.WARNING += 1;
-      else counts.GOOD += 1;
-    }
-    return counts;
-  };
-  const countStatus = TotalStatus(dataVcutMachineStatus);
   return (
     <Grid container columns={12}>
       <Grid
@@ -174,7 +138,7 @@ const VoltageMonitorDashboard = () => {
             bgColor={"linear-gradient(45deg,#4099ff,#73b4ff)"}
             header="Total"
           >
-            {dataVcutMachineStatus.length}
+            {dataVoltageMonitorMachineStatus.length}
           </ESDTotal>
           <ESDTotal
             lg={3}
@@ -184,7 +148,7 @@ const VoltageMonitorDashboard = () => {
             bgColor={"linear-gradient(45deg,#2ed8b6,#59e0c5)"}
             header="Good"
           >
-            {countStatus.GOOD}
+            {dataVoltageMonitorMachineStatus.length - errorCount}
           </ESDTotal>
           <ESDTotal
             lg={3}
@@ -194,7 +158,7 @@ const VoltageMonitorDashboard = () => {
             bgColor={"linear-gradient(45deg,#ffb640,#ffcb80)"}
             header="Warning"
           >
-            {countStatus.WARNING}
+            {0}
           </ESDTotal>
           <ESDTotal
             lg={3}
@@ -204,7 +168,7 @@ const VoltageMonitorDashboard = () => {
             bgColor={"linear-gradient(45deg,#ff5370,#ff869a)"}
             header="Error"
           >
-            {countStatus.OVER}
+            {errorCount}
           </ESDTotal>
         </Grid>
         <HiBox
@@ -218,7 +182,7 @@ const VoltageMonitorDashboard = () => {
           legendItem={legendItem}
         >
           <VoltageMonitorStatus
-            idata={dataVcutMachineStatus}
+            idata={dataVoltageMonitorMachineStatus}
             onCallBack={fetchVcutMachineStatus}
           ></VoltageMonitorStatus>
         </HiBox>

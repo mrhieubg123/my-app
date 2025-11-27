@@ -9,35 +9,25 @@ import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 
 const axiosInstance = await getAuthorizedAxiosIntance();
-const CRITICAL_THRESHOLD = 500000;
-const WARNING_THRESHOLD = 450000;
+const MIN_THRESHOLD = 14.5;
+const MAX_THRESHOLD = 15.5;
 
-const VoltageMonitorDetail = ({ idata = [] }) => {
+const VoltageMonitorDetail = ({ idata }) => {
   const theme = useTheme();
   const parentRef = useRef(null);
   const [parentSize, setParentSize] = useState({ width: 0, height: 0 });
-  const [dataOverTime, setDataOverTime] = useState([]);
-
-  const rowsWithId = useMemo(
-    () =>
-      dataOverTime.map((row, index) => ({
-        id: index, // hoặc row.LINE nếu unique
-        ...row,
-      })),
-    [dataOverTime]
-  );
+  const [dataVoltage, setDataVoltage] = useState([]);
 
   const fetchDataOverTime = async () => {
     try {
       const response = await axiosInstance.post(
-        "api/vcut/getKnifeVcutMachineHistory",
+        "api/Voltage/getVoltageMonitorDetail",
         {
-          factory: idata.FACTORY,
-          line: idata.LINE,
-          location: idata.LOCATION,
+          line: idata.line,
+          location: idata.location,
         }
       );
-      setDataOverTime(response.data || []); // Cập nhật state
+      setDataVoltage(response.data || []); // Cập nhật state
     } catch (error) {
       console.log(error.message);
     }
@@ -65,24 +55,23 @@ const VoltageMonitorDetail = ({ idata = [] }) => {
 
   useEffect(() => {
     fetchDataOverTime();
-  }, [idata]);
+  }, []);
 
   const options = React.useMemo(() => {
-    const used = (10000 / 500000) * 100; // number
-    const remain = 100 - used; // number
-
     return {
       chart: {
         backgroundColor: "transparent",
         reflow: true,
         height: parentSize.height,
         borderWidth: 0,
+        zoomType: "x",
       },
       title: {
         text: "",
       },
       xAxis: {
-        categories: [1, 2, 3, 4, 5, 6, 7, 8],
+        categories: dataVoltage.map((item, index) => index + 1),
+        tickInterval: 50,
         title: {
           text: "",
         },
@@ -94,6 +83,8 @@ const VoltageMonitorDetail = ({ idata = [] }) => {
         },
       },
       yAxis: {
+        min: 14,
+        max: 16,
         labels: {
           format: "{value}",
           style: {
@@ -111,36 +102,52 @@ const VoltageMonitorDetail = ({ idata = [] }) => {
         // max: arrLimit.globalMax,
         tickAmount: 5,
         opposite: false,
+        plotBands: [
+          {
+            from: MIN_THRESHOLD,
+            to: MAX_THRESHOLD,
+            color: "rgba(0, 255, 0, 0.05)", // vùng xanh nhạt
+            label: {
+              text: "",
+              align: "left",
+              style: {
+                color: theme.palette.chart.color,
+              },
+            },
+          },
+        ],
         // 🚀 BỔ SUNG HAI ĐƯỜNG HIGHLIGHT (plotLines)
         plotLines: [
           {
-            value: 17, // Giá trị của đường Max Limit
+            value: MAX_THRESHOLD, // Giá trị của đường Max Limit
             color: "#ff0000", // Màu đỏ
             width: 1, // Độ dày 2px
             dashStyle: "Dash", // Kiểu đường nét đứt
             label: {
-              text: `Max (17V)`,
+              text: `Max (${MAX_THRESHOLD}V)`,
               align: "right",
               style: {
                 color: "#ff0000",
                 fontWeight: "500",
               },
               x: -5, // Dịch chuyển label sang trái 5px
+              y: -5,
             },
           },
           {
-            value: 13, // Giá trị của đường Min Limit
+            value: MIN_THRESHOLD, // Giá trị của đường Min Limit
             color: "#ff0000", // Màu đỏ
             width: 1,
             dashStyle: "Dash",
             label: {
-              text: `Min (13V)`,
+              text: `Min (${MIN_THRESHOLD}V)`,
               align: "right",
               style: {
                 color: "#ff0000",
                 fontWeight: "500",
               },
               x: -5,
+              y: 20,
             },
           },
         ],
@@ -149,8 +156,29 @@ const VoltageMonitorDetail = ({ idata = [] }) => {
         {
           name: "Force1",
           type: "spline",
-          data: [10, 11, 12, 11, 11, 15, 16],
-          color: "#00e396",
+          data: dataVoltage.map((item) => {
+            if (idata.locationMonitor === 0) return item.CT_ROBOT;
+            return item["KCN" + idata.locationMonitor];
+          }),
+          // color: "#00e396",
+          zoneAxis: "y", // dùng giá trị y để chia zone
+          zones: [
+            {
+              value: MIN_THRESHOLD, // y < min  -> đỏ
+              color: "#e74c3c",
+            },
+            {
+              value: MAX_THRESHOLD, // min <= y <= max -> xanh
+              color: "#00e396",
+            },
+            {
+              // y > max -> đỏ
+              color: "#e74c3c",
+            },
+          ],
+          marker: {
+            enabled: false, // ❌ Ẩn chấm
+          },
           dataLabels: {
             color: "#00e396",
             fontSize: "11px",
@@ -164,7 +192,11 @@ const VoltageMonitorDetail = ({ idata = [] }) => {
         enabled: false,
       },
       tooltip: {
-        shared: true,
+        shared: false,
+        valueDecimals: 3,
+        pointFormatter: function () {
+          return `<b>${this.y.toFixed(1)} V</b>`;
+        },
       },
       plotOptions: {
         series: {
@@ -191,7 +223,116 @@ const VoltageMonitorDetail = ({ idata = [] }) => {
         },
       },
     };
-  }, [parentSize, theme, idata]);
+  }, [parentSize, theme, dataVoltage]);
+
+  const optionsGauge = React.useMemo(
+    () => ({
+      chart: {
+        type: "solidgauge",
+        reflow: true,
+        height: parentSize.height,
+        backgroundColor: "transparent", // màu nền tối giống hình
+      },
+      title: {
+        text: "Voltage",
+        style: {
+          color: "#ffffff",
+          fontSize: "16px",
+        },
+      },
+      pane: {
+        center: ["50%", "57%"], // hạ gauge xuống dưới
+        size: "100%",
+        startAngle: -90,
+        endAngle: 90,
+        background: {
+          innerRadius: "60%",
+          outerRadius: "100%",
+          shape: "arc",
+          backgroundColor: "#555555", // màu xám của vòng ngoài
+        },
+      },
+
+      tooltip: { enabled: false },
+      credits: { enabled: false },
+
+      yAxis: {
+        min: 0,
+        max: 25,
+        lineWidth: 0,
+        tickWidth: 0,
+        minorTickInterval: null,
+        labels: {
+          distance: 12,
+          style: {
+            color: "#ffffff",
+            fontSize: "10px",
+          },
+        },
+      },
+
+      plotOptions: {
+        solidgauge: {
+          dataLabels: {
+            y: -20,
+            borderWidth: 0,
+            useHTML: true,
+          },
+        },
+      },
+
+      series: [
+        {
+          name: "Voltage",
+          data: [Number(idata.value)],
+          // màu phần đã fill (vùng xanh)
+          color: "#00ff00",
+          // màu phần chưa fill dùng từ background pane
+          innerRadius: "60%",
+          radius: "100%",
+          dataLabels: {
+            formatter: function () {
+              const y = this.y;
+              const color =
+                y < MIN_THRESHOLD || y > MAX_THRESHOLD ? "#e74c3c" : "#00e396"; // đỏ nếu lỗi, xanh nếu OK
+
+              return (
+                '<div style="text-align:center">' +
+                `<span style="font-size:22px;color:${color}">` +
+                Highcharts.numberFormat(y, 1) +
+                " V</span><br/>" +
+                "</div>"
+              );
+            },
+            // format:
+            //   '<div style="text-align:center">' +
+            //   '<span style="font-size:22px;color:#e74c3c">{y:.1f} V</span><br/>' +
+            //   "</div>",
+          },
+        },
+        // KIM ĐỒNG HỒ
+        {
+          type: "gauge",
+          data: [Number(idata.value)],
+          dial: {
+            radius: "103%", // dài tới mép ngoài
+            backgroundColor: "#ffffff", // màu kim (trắng)
+            borderWidth: 0,
+            baseLength: "28", // không có phần gốc thò ra
+            baseWidth: 8, // độ dày kim
+            rearLength: "-28", // không kéo dài ra phía sau
+          },
+          pivot: {
+            radius: 0, // ẩn chấm tròn ở tâm
+          },
+          enableMouseTracking: false,
+          dataLabels: { enabled: false },
+          zIndex: 2, // nằm trên vòng cung
+        },
+      ],
+    }),
+    [parentSize, theme, idata]
+  );
 
   return (
     <Grid sx={{ height: "100%" }} container columns={12}>
@@ -210,20 +351,21 @@ const VoltageMonitorDetail = ({ idata = [] }) => {
             component="img"
             align="center"
             src={imgMachine}
-            sx={{ height: "100%" }}
+            sx={{ height: "100%", width: "100%" }}
           />
         </Box>
       </HiBox>
+      <HiBox lg={7} md={7} xs={7} alarn={false} height="28vh" variant="filled">
+        <div ref={parentRef} style={{ height: "100%", display: "block" }}>
+          <HighchartsReact
+            highcharts={Highcharts}
+            options={optionsGauge}
+            containerProps={{ style: { width: "100%", height: "100%" } }}
+          />
+        </div>
+      </HiBox>
       <HiBox
-        lg={7}
-        md={7}
-        xs={7}
-        alarn={false}
-        height="28vh"
-        variant="filled"
-      ></HiBox>
-      <HiBox
-        header={`Voltage monitor status`}
+        header={idata.machine}
         lg={12}
         md={12}
         xs={12}

@@ -31,38 +31,32 @@ import HiHoverReveal from "../../../../components/HiHoverReveal";
 
 const axiosInstance = await getAuthorizedAxiosIntance();
 // --- HẰNG SỐ VÀ DỮ LIỆU GIẢ LẬP ---
-const CRITICAL_THRESHOLD = 500000;
-const WARNING_THRESHOLD = 450000;
+const MIN_THRESHOLD = 14.5;
+const MAX_THRESHOLD = 15.5;
 
 // --- COMPONENT CHÍNH (GRID 16 MÁY) ---
 
-const VoltageMonitorStatus = ({
-  idata = [],
-  onCallBack,
-  onModelChange,
-  onModelChange2,
-  onModelChangeEdit,
-}) => {
-  idata = [
-    {
-      LINE: "T04",
-      M1: "machine1//M2-sta-M2//-1",
-      M2: "machine1//M2-sta-M0//286/-/M1//286/-/M2//286/-/M3//286/-/M4//286/-/M5//286-/M6//286/-/M7//286/-/M8//286/-/M9//286/-/M10//286/-/M11//286/-/M12//286/-/M13//286/-/M14//286/",
-      M3: "machine1//M2-sta-M0//286/-/M1//286/-/M2//286/-/M3//286/-/M4//286/-/M5//286-/M6//286/-/M7//286/-/M8//286/-/M9//286/-/M10//286/-/M11//286/-/M12//286/-/M13//286/-/M14//286/",
-      M4: "machine1//M2-sta-M0//286/-/M1//286/-/M2//286/-/M3//286/-/M4//286/-/M5//286-/M6//286/-/M7//286/-/M8//286/-/M9//286/-/M10//286/-/M11//286/-/M12//286/-/M13//286/-/M14//286/",
-      M5: "machine1//M2-sta-M0//286/-/M1//286/-/M2//286/-/M3//286/-/M4//286/-/M5//286-/M6//286/-/M7//286/-/M8//286/-/M9//286/-/M10//286/-/M11//286/-/M12//286/-/M13//286/-/M14//286/",
-      M6: "machine1//M2-sta-M0//286/-/M1//286/-/M2//286/-/M3//286/-/M4//286/-/M5//286-/M6//286/-/M7//286/-/M8//286/-/M9//286/-/M10//286/-/M11//286/-/M12//286/-/M13//286/-/M14//286/",
-      M7: "machine1//M2-sta-M0//286/-/M1//286/-/M2//286/-/M3//286/-/M4//286/-/M5//286-/M6//286/-/M7//286/-/M8//286/-/M9//286/-/M10//286/-/M11//286/-/M12//286/-/M13//286/-/M14//286/",
-      M8: "machine1//M2-sta-M0//286/-/M1//286/-/M2//286/-/M3//286/-/M4//286/-/M5//286-/M6//286/-/M7//286/-/M8//286/-/M9//286/-/M10//286/-/M11//286/-/M12//286/-/M13//286/-/M14//286/",
-      M9: "machine1//M2-sta-M0//286/-/M1//286/-/M2//286/-/M3//286/-/M4//286/-/M5//286-/M6//286/-/M7//286/-/M8//286/-/M9//286/-/M10//286/-/M11//286/-/M12//286/-/M13//286/-/M14//286/",
-      M10: "machine1//M2-sta-M0//286/-/M1//286/-/M2//286/-/M3//286/-/M4//286/-/M5//286-/M6//286/-/M7//286/-/M8//286/-/M9//286/-/M10//286/-/M11//286/-/M12//286/-/M13//286/-/M14//286/",
-    },
-    {
-      LINE: "T05",
-      M1: "machine1//M2-sta-M2//-1",
-      M2: "machine1//M2-sta-M1//286",
-    },
-  ];
+const VoltageMonitorStatus = ({ idata = [], onModelChange2 }) => {
+  // idata = [
+  //   {
+  //     LINE: "T04",
+  //     M1: "machine1//M2-sta-M2//-1",
+  //     M2: "machine1//M2-sta-M0//286/-/M1//286/-/M2//286/-/M3//286/-/M4//286/-/M5//286-/M6//286/-/M7//286/-/M8//286/-/M9//286/-/M10//286/-/M11//286/-/M12//286/-/M13//286/-/M14//286/",
+  //     M3: "machine1//M2-sta-M0//286/-/M1//286/-/M2//286/-/M3//286/-/M4//286/-/M5//286-/M6//286/-/M7//286/-/M8//286/-/M9//286/-/M10//286/-/M11//286/-/M12//286/-/M13//286/-/M14//286/",
+  //     M4: "machine1//M2-sta-M0//286/-/M1//286/-/M2//286/-/M3//286/-/M4//286/-/M5//286-/M6//286/-/M7//286/-/M8//286/-/M9//286/-/M10//286/-/M11//286/-/M12//286/-/M13//286/-/M14//286/",
+  //     M5: "machine1//M2-sta-M0//286/-/M1//286/-/M2//286/-/M3//286/-/M4//286/-/M5//286-/M6//286/-/M7//286/-/M8//286/-/M9//286/-/M10//286/-/M11//286/-/M12//286/-/M13//286/-/M14//286/",
+  //     M6: "machine1//M2-sta-M0//286/-/M1//286/-/M2//286/-/M3//286/-/M4//286/-/M5//286-/M6//286/-/M7//286/-/M8//286/-/M9//286/-/M10//286/-/M11//286/-/M12//286/-/M13//286/-/M14//286/",
+  //     M7: "machine1//M2-sta-M0//286/-/M1//286/-/M2//286/-/M3//286/-/M4//286/-/M5//286-/M6//286/-/M7//286/-/M8//286/-/M9//286/-/M10//286/-/M11//286/-/M12//286/-/M13//286/-/M14//286/",
+  //     M8: "machine1//M2-sta-M0//286/-/M1//286/-/M2//286/-/M3//286/-/M4//286/-/M5//286-/M6//286/-/M7//286/-/M8//286/-/M9//286/-/M10//286/-/M11//286/-/M12//286/-/M13//286/-/M14//286/",
+  //     M9: "machine1//M2-sta-M0//286/-/M1//286/-/M2//286/-/M3//286/-/M4//286/-/M5//286-/M6//286/-/M7//286/-/M8//286/-/M9//286/-/M10//286/-/M11//286/-/M12//286/-/M13//286/-/M14//286/",
+  //     M10: "machine1//M2-sta-M0//286/-/M1//286/-/M2//286/-/M3//286/-/M4//286/-/M5//286-/M6//286/-/M7//286/-/M8//286/-/M9//286/-/M10//286/-/M11//286/-/M12//286/-/M13//286/-/M14//286/",
+  //   },
+  //   {
+  //     LINE: "T05",
+  //     M1: "machine1//M2-sta-M2//-1",
+  //     M2: "machine1//M2-sta-M1//286",
+  //   },
+  // ];
   const theme = useTheme();
   const [showModal, setShowModal] = useState(false);
   const [selectedCells, setSelectedCells] = useState(new Map());
@@ -85,50 +79,18 @@ const VoltageMonitorStatus = ({
       ? Object.keys(idata[0]).map((keycol) => keycol.replace("LINE", ""))
       : columnsxx;
 
-  const handleCellClick = (row, col, station) => {
-    const cellValue = `${columns[col]}`;
-    const rowValue = `${idata[row].Line}`;
-    const rowValue2 = `${idata[row].Project}`;
+  const handleCellClick2 = (row, col, station, code,value) => {
+    const rowValue = `${idata[row].LINE}`;
     const newModel = {
-      project: rowValue2,
       line: rowValue,
-      machine: station.split("-sta-")[0].split("//")[0],
-      machineName: station.split("-sta-")[0].split("//")[1],
-      location: cellValue.replace("H", ""),
-      machineCode: "",
+      machine: station.split("//")[0],
+      location: col,
+      locationMonitor: code,
+      value: value,
     };
-    onModelChange?.(newModel);
-  };
-
-  const handleCellClickEdit = (row, col, station) => {
-    const cellValue = `${columns[col]}`;
-    const rowValue = `${idata[row].Line}`;
-    const rowValue2 = `${idata[row].Project}`;
-    const newModel = {
-      project: rowValue2,
-      line: rowValue,
-      machine: station.split("-sta-")[0].split("//")[0],
-      machineName: station.split("-sta-")[0].split("//")[1],
-      location: cellValue.replace("H", ""),
-      machineCode: "",
-    };
-    console.log(newModel);
-    onModelChangeEdit?.(newModel);
-  };
-
-  const handleCellClick2 = (row, col, station, code) => {
-    const cellValue = `${columns[col]}`;
-    const rowValue = `${idata[row].Line}`;
-    const rowValue2 = `${idata[row].Project}`;
-    const newModel = {
-      project: rowValue2,
-      line: rowValue,
-      machine: station.split("-sta-")[0].split("//")[0],
-      machineName: station.split("-sta-")[0].split("//")[1],
-      location: cellValue.replace("H", ""),
-      machineCode: code,
-    };
+    console.log('newModel',newModel)
     onModelChange2?.(newModel);
+    setMachine(newModel);
     setShowModal(true);
   };
 
@@ -147,16 +109,20 @@ const VoltageMonitorStatus = ({
     const lVal =
       val &&
       val
-        ?.split("-sta-")[1]
-        .split("/-/")
-        .map((item) => item.split("//")[1]);
+        ?.split("//")[1]
+        .split("-")
+        .map((item) => item);
     const minVal =
       lVal.length > 0
         ? lVal.reduce((min, num) => (num * 1 < min * 1 ? num : min))
         : 0;
+    const maxVal =
+      lVal.length > 0
+        ? lVal.reduce((max, num) => (num * 1 > max * 1 ? num : max))
+        : 0;
     const status =
-      minVal && minVal <= 0 ? "ERROR" : minVal <= 5 * 24 ? "OFF" : "RUN";
-    const color = colorMap[status?.split("-")[0]] || "";
+      minVal <= MIN_THRESHOLD || maxVal >= MAX_THRESHOLD ? "ERROR" : "RUN";
+    const color = colorMap[status] || "";
     return (
       <Box
         sx={{
@@ -169,7 +135,7 @@ const VoltageMonitorStatus = ({
         }}
       >
         <Box
-          className={status?.split("-")[0] === "ERROR" ? "blinking" : ""}
+          className={status === "ERROR" ? "blinking" : ""}
           sx={{
             backgroundColor: color,
             width: "24px",
@@ -183,8 +149,9 @@ const VoltageMonitorStatus = ({
   };
 
   const renderStatusCell2 = (val) => {
-    const status = val && val <= 0 ? "ERROR" : val <= 5 * 24 ? "OFF" : "RUN";
-    const color = colorMap[status?.split("-")[0]] || "";
+    const status =
+      val <= MIN_THRESHOLD || val >= MAX_THRESHOLD ? "ERROR" : "RUN";
+    const color = colorMap[status] || "";
     return (
       <Box
         sx={{
@@ -197,7 +164,7 @@ const VoltageMonitorStatus = ({
         }}
       >
         <Box
-          className={status?.split("-")[0] === "ERROR" ? "blinking" : ""}
+          className={status === "ERROR" ? "blinking" : ""}
           sx={{
             backgroundColor: color,
             width: "16px",
@@ -209,7 +176,18 @@ const VoltageMonitorStatus = ({
       </Box>
     );
   };
-  console.log("VoltageMonitorStatus", idata);
+  const seriesData = Object.values(
+    idata.reduce((acc, item) => {
+      if (!acc[item.LINE]) {
+        acc[item.LINE] = {
+          LINE: item.LINE,
+        }; // chỉ lấy lần đầu tiên LINE xuất hiện
+      }
+      acc[item.LINE]["M" + item.LOCATION] = item.MACHINE_NAME + "//" + item.KCN;
+      return acc;
+    }, {})
+  ).sort((a, b) => a.LINE.localeCompare(b.LINE));
+
   return idata.length > 0 ? (
     <Box sx={{ flexGrow: 1, p: 3, width: "100%", height: "100%" }}>
       <HiModal
@@ -247,16 +225,6 @@ const VoltageMonitorStatus = ({
               }}
             >
               <TableRow>
-                {/* <TableCell
-                  key={"PROJECT"}
-                  style={{
-                    padding: "6px",
-                    textAlign: "center",
-                    fontWeight: "bold",
-                  }}
-                >
-                  Project
-                </TableCell> */}
                 <TableCell
                   key={"LINE"}
                   style={{
@@ -267,141 +235,137 @@ const VoltageMonitorStatus = ({
                 >
                   Line
                 </TableCell>
-                {idata.length > 0 &&
-                  Object.keys(idata[0]).map((keycol) =>
-                    keycol !== "LINE" && keycol !== "PROJECT" ? (
-                      <TableCell
-                        key={keycol}
-                        style={{
-                          padding: "6px",
-                          textAlign: "center",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {keycol}
-                      </TableCell>
-                    ) : (
-                      ""
-                    )
-                  )}
+                {Object.keys(seriesData[0]).map((keycol) =>
+                  keycol !== "LINE" ? (
+                    <TableCell
+                      key={keycol}
+                      style={{
+                        padding: "6px",
+                        textAlign: "center",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {keycol}
+                    </TableCell>
+                  ) : (
+                    ""
+                  )
+                )}
               </TableRow>
             </TableHead>
             <TableBody>
-              {idata.length > 0 &&
-                idata.map((row, rowIndex) => (
-                  <TableRow key={rowIndex}>
-                    {Object.keys(row).map((key, cellIndex) => {
-                      const cellKey = `${rowIndex}-${cellIndex}`;
-                      const isSelected = selectedCells.has(cellKey);
-                      return (
-                        <TableCell
-                          key={cellIndex}
-                          style={{
-                            paddingLeft: "6px",
-                            paddingRight: "6px",
-                            paddingTop: "unset",
-                            paddingBottom: "unset",
-                            whiteSpace: "nowrap",
-                            textAlign: "center",
-                            background: isSelected
-                              ? key !== "LINE"
-                                ? "#219af144"
-                                : "#219af1"
-                              : "",
-                            cursor: "pointer",
-                          }}
-                        >
-                          {key !== "LINE" && key !== "PROJECT"
-                            ? row[key] !== null && (
-                                <HiHoverReveal
-                                  rowIndex={rowIndex}
-                                  cellIndex={cellIndex}
-                                  trigger={
-                                    <Box component={"div"}>
-                                      {renderStatusCell(row[key])}
-                                    </Box>
-                                  }
+              {seriesData.map((row, rowIndex) => (
+                <TableRow key={rowIndex}>
+                  {Object.keys(row).map((key, cellIndex) => {
+                    const cellKey = `${rowIndex}-${cellIndex}`;
+                    const isSelected = selectedCells.has(cellKey);
+                    return (
+                      <TableCell
+                        key={cellIndex}
+                        style={{
+                          paddingLeft: "6px",
+                          paddingRight: "6px",
+                          paddingTop: "unset",
+                          paddingBottom: "unset",
+                          whiteSpace: "nowrap",
+                          textAlign: "center",
+                          background: isSelected
+                            ? key !== "LINE"
+                              ? "#219af144"
+                              : "#219af1"
+                            : "",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {key !== "LINE"
+                          ? row[key] !== null && (
+                              <HiHoverReveal
+                                rowIndex={rowIndex}
+                                cellIndex={cellIndex}
+                                trigger={
+                                  <Box component={"div"}>
+                                    {renderStatusCell(row[key])}
+                                  </Box>
+                                }
+                              >
+                                <Box
+                                  component={"div"}
+                                  sx={{ marginTop: "8px" }}
                                 >
-                                  <Box
-                                    component={"div"}
-                                    sx={{ marginTop: "8px" }}
-                                  >
-                                    <ListItemText
-                                      primary={row[key]
-                                        ?.split("-sta-")[0]
-                                        .replace("//", " || ")}
-                                      secondary={
-                                        <Grid
-                                          container
-                                          columns={12}
-                                          component={"div"}
-                                          sx={{
-                                            display: "flex",
-                                            justifyContent: "center",
-                                            alignItems: "center",
-                                            minWidth: "210px",
-                                          }}
-                                        >
-                                          {row[key]
-                                            ?.split("-sta-")[1]
-                                            .split("/-/")
-                                            .map((item) => (
-                                              <Grid
-                                                size={{ lg: 2, md: 2, xs: 2 }}
-                                                conponent={"a"}
-                                                onClick={() =>
-                                                  handleCellClick2(
-                                                    rowIndex,
-                                                    cellIndex,
-                                                    row[key],
-                                                    item?.split("//")[0]
-                                                  )
-                                                }
+                                  <ListItemText
+                                    primary={row[key]?.split("//")[0]}
+                                    secondary={
+                                      <Grid
+                                        container
+                                        columns={12}
+                                        component={"div"}
+                                        sx={{
+                                          display: "flex",
+                                          justifyContent: "center",
+                                          alignItems: "center",
+                                          minWidth: "210px",
+                                        }}
+                                      >
+                                        {row[key]
+                                          ?.split("//")[1]
+                                          .split("-")
+                                          .map((item, indexMonitor) => (
+                                            <Grid
+                                              size={{ lg: 2, md: 2, xs: 2 }}
+                                              conponent={"a"}
+                                              onClick={() =>
+                                                handleCellClick2(
+                                                  rowIndex,
+                                                  cellIndex,
+                                                  row[key],
+                                                  indexMonitor,item
+                                                )
+                                              }
+                                              sx={{
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                justifyContent: "center",
+                                                alignItems: "center",
+                                                padding: "0px 6px",
+                                              }}
+                                            >
+                                              <Typography
                                                 sx={{
-                                                  display: "flex",
-                                                  flexDirection: "column",
-                                                  justifyContent: "center",
-                                                  alignItems: "center",
-                                                  padding: "0px 6px",
+                                                  fontSize: "11px",
+                                                  whiteSpace: "nowrap",
+                                                  maxWidth: "70px",
+                                                  overflow: "hidden",
+                                                  textOverflow: "ellipsis",
                                                 }}
                                               >
-                                                <Typography
-                                                  sx={{
-                                                    fontSize: "11px",
-                                                    whiteSpace: "nowrap",
-                                                    maxWidth: "70px",
-                                                    overflow: "hidden",
-                                                    textOverflow: "ellipsis",
-                                                  }}
-                                                >
-                                                  {item?.split("//")[0]}
-                                                </Typography>
-                                                {renderStatusCell2(
-                                                  item?.split("//")[1]
-                                                )}
-                                              </Grid>
-                                            ))}
-                                        </Grid>
-                                      }
-                                      primaryTypographyProps={{
-                                        fontSize: "12px",
-                                        whiteSpace: "nowrap",
-                                        fontWeight: "bold",
-                                      }}
-                                      secondaryTypographyProps={{
-                                        fontSize: "11px",
-                                        whiteSpace: "nowrap",
-                                      }}
-                                    />
-                                  </Box>
-                                </HiHoverReveal>
-                              )
-                            : row[key]}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                ))}
+                                                {indexMonitor === 0
+                                                  ? "CT"
+                                                  : "V" + indexMonitor}
+                                              </Typography>
+                                              {renderStatusCell2(item)}
+                                            </Grid>
+                                          ))}
+                                      </Grid>
+                                    }
+                                    primaryTypographyProps={{
+                                      fontSize: "12px",
+                                      whiteSpace: "nowrap",
+                                      fontWeight: "bold",
+                                    }}
+                                    secondaryTypographyProps={{
+                                      fontSize: "11px",
+                                      whiteSpace: "nowrap",
+                                    }}
+                                  />
+                                </Box>
+                              </HiHoverReveal>
+                            )
+                          : row[key]}
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </TableContainer>
