@@ -4,6 +4,7 @@ import { Box, Switch, Grid } from "@mui/material";
 import HiBox from "../../../../components/HiBox";
 import { getAuthorizedAxiosIntance } from "../../../../utils/axiosConfig";
 import imgMachine from "./images/img1.png";
+import imgCtRobot from "./images/ctRobot.png";
 import { useTheme } from "@mui/material/styles";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
@@ -350,7 +351,7 @@ const VoltageMonitorDetail = ({ idata }) => {
           <Box
             component="img"
             align="center"
-            src={imgMachine}
+            src={idata.locationMonitor === 0 ? imgCtRobot : imgMachine}
             sx={{ height: "100%", width: "100%" }}
           />
         </Box>

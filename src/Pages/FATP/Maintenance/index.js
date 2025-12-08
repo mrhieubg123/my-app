@@ -34,12 +34,8 @@ const MaintenanceStatus = () => {
     []
   );
   const [monthSelect, setMonthSelect] = useState(null);
-  const [dataFATPMachineAnalysis, setDataFATPMachineAnalysis] = useState([]);
-  const [dataFATPMachineError5m, setDataFATPMachineError5m] = useState([]);
-  const [dataFATPErrorDetail, setDataFATPErrorDetail] = useState([]);
   const [dataMaintenanceDetailFilter, setDataMaintenanceDetailFilter] =
     useState([]);
-  const [Data6, setData6] = useState({});
 
   const fetchMaintenancePlan = async (model) => {
     try {
@@ -121,7 +117,6 @@ const MaintenanceStatus = () => {
           </HiModal>
           <RadialChart
             idata={dataMaintenancePlanSelect}
-            dataFATPErrorDetail={dataFATPErrorDetail}
             onCallBack={openModalMaintenanceDetails}
           ></RadialChart>
         </HiBox>
