@@ -18,7 +18,7 @@ import HiHoverReveal from "../../../../components/HiHoverReveal";
 
 const TableMachineStatus = ({
   idata = [],
-  dataForce= [],
+  dataForce = [],
   onModelChange,
   onModelChange2,
   activeModeId,
@@ -233,6 +233,10 @@ const TableMachineStatus = ({
       ...prev,
       line: item.LINE,
       name: item.NAME_MACHINE,
+      location: item.LOCATION,
+      type: activeModeId,
+      dateFrom: model.dateFrom,
+      dateTo: model.dateTo,
     }));
     setShowModal1(true);
   };
@@ -246,7 +250,7 @@ const TableMachineStatus = ({
         widthModal={80}
         heightModal={80}
       >
-        <LineChartDetail model={queryMain} dataForce={dataForce}/>
+        <LineChartDetail model={queryMain} dataForce={dataForce} />
       </HiModal>
       <Box sx={{ position: "relative", height: "100%" }}>
         <Box sx={{ width: "100%", zIndex: "11", position: "absolute" }}>

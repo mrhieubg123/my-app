@@ -46,43 +46,37 @@ const TableErorOver5m = ({ idata = [] }) => {
                 style={{ padding: "3px 6px", fontWeight: "bold" }}
                 align="center"
               >
-                Line
+                Name
               </TableCell>
               <TableCell
                 style={{ padding: "3px 6px", fontWeight: "bold" }}
                 align="center"
               >
-                Machine name
+                Vị trí dừng
               </TableCell>
               <TableCell
                 style={{ padding: "3px 6px", fontWeight: "bold" }}
                 align="center"
               >
-                Location
+                Thông tin
               </TableCell>
               <TableCell
                 style={{ padding: "3px 6px", fontWeight: "bold" }}
                 align="center"
               >
-                Error place
+                Tồn kho
               </TableCell>
               <TableCell
                 style={{ padding: "3px 6px", fontWeight: "bold" }}
                 align="center"
               >
-                Error value
+                An toàn tồn
               </TableCell>
               <TableCell
                 style={{ padding: "3px 6px", fontWeight: "bold" }}
                 align="center"
               >
-                Time
-              </TableCell>
-              <TableCell
-                style={{ padding: "3px 6px", fontWeight: "bold" }}
-                align="center"
-              >
-                State
+                Report
               </TableCell>
             </TableRow>
           </TableHead>
@@ -166,7 +160,7 @@ const TableErorOver5m = ({ idata = [] }) => {
                       >
                         {row.CREATED_AT || ""}
                       </TableCell>
-                      <TableCell
+                      {/* <TableCell
                         align="center"
                         style={{
                           padding: "3px",
@@ -189,7 +183,7 @@ const TableErorOver5m = ({ idata = [] }) => {
                         >
                           Failure
                         </Box>
-                      </TableCell>
+                      </TableCell> */}
                     </TableRow>
                   )
                 )

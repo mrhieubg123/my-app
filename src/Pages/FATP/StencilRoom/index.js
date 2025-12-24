@@ -10,10 +10,13 @@ import ESDTotal from "./components/ESDTotal";
 import imgRobot from "./components/images/robot.png";
 import HiModal from "../../../components/HiModal";
 import ErrorDetail from "./components/ErrorDetail";
+import RadialChart from "./components/RadialChart";
+import HiProgressBar from "./components/FailureAnalysis";
+import TableNG from "./components/tableNG";
 
 const axiosInstance = await getAuthorizedAxiosIntance();
 
-const VoltageMonitorDashboard = () => {
+const StencilRoomDashboard = () => {
   const paramState = useSelector((state) => state.param);
   const [showModal1, setShowModal1] = useState(false);
   const [queryDate, setQueryDate] = useState("");
@@ -100,7 +103,7 @@ const VoltageMonitorDashboard = () => {
   return (
     <Grid container columns={12}>
       <Grid
-        size={{ lg: 5, md: 5, xs: 12 }}
+        size={{ lg: 3, md: 3, xs: 12 }}
         lg={9}
         md={9}
         xs={12}
@@ -112,8 +115,8 @@ const VoltageMonitorDashboard = () => {
           md={12}
           xs={12}
           alarn={false}
-          header=""
-          height="40vh"
+          header="Inventory"
+          height="30vh"
           variant="filled"
         >
           <HiModal
@@ -125,127 +128,141 @@ const VoltageMonitorDashboard = () => {
           >
             <ErrorDetail idata={dataFATPErrorDetailFilter}></ErrorDetail>
           </HiModal>
-          <Box
-            component={"div"}
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              width: "100%",
-              height: "100%",
-            }}
-          >
-            <Box
-              component="img"
-              align="center"
-              src={imgRobot}
-              sx={{ height: "100%" }}
-            />
-          </Box>
+          <RadialChart
+          // idata={dataFATPMachineAnalysis}
+          // dataFATPErrorDetail={dataFATPErrorDetail}
+          ></RadialChart>
         </HiBox>
         <HiBox
           lg={12}
           md={12}
           xs={12}
           alarn={false}
-          header="Voltage Monitor Error Detail"
-          note={switchErAnLo ? "by Machine" : "by Line"}
-          height="50vh"
+          header="Top Using"
+          // note={switchErAnLo ? "by Machine" : "by Line"}
+          height="30vh"
           variant="filled"
         >
-          <Switch
+          {/* <Switch
             checked={switchErAnLo}
             onChange={handleChangeSwitchErAnLo}
             sx={{ position: "absolute", top: 0, right: 0, zIndex: 2 }}
             defaultChecked
-          ></Switch>
-          <ColumnChart
-            idata={dataVoltageMonitorErrorDetail}
-            onCallBack={openModalMaintenanceDetails}
-            checked={switchErAnLo}
-          ></ColumnChart>
+          ></Switch> */}
+          <HiProgressBar
+            // idata={dataErrorHistory}
+            // DataSeries={Data5.DataSeries}
+            DataSeries={[1,2]}
+            // Colors={Data5.colors}
+            // keyFilter={"NAME_MACHINE"}
+            // Labels={Data5.labels}
+          />
+        </HiBox>
+        <HiBox
+          lg={12}
+          md={12}
+          xs={12}
+          alarn={false}
+          header="Top Using"
+          height="32vh"
+          variant="filled"
+        >
+          <TableNG/>
         </HiBox>
       </Grid>
       <Grid
-        size={{ lg: 7, md: 7, xs: 12 }}
+        size={{ lg: 9, md: 9, xs: 12 }}
         lg={9}
         md={9}
         xs={12}
         container
         columns={12}
       >
-        <Grid
-          size={{ lg: 12, md: 12, xs: 12 }}
-          container
-          columns={12}
-          lg={12}
-          md={12}
-          xs={12}
-          variant="filled"
-        >
-          <ESDTotal
-            lg={3}
-            md={3}
-            xs={3}
-            height="15vh"
-            bgColor={"linear-gradient(45deg,#4099ff,#73b4ff)"}
-            header="Total"
-          >
-            {dataVoltageMonitorMachineStatus.length}
-          </ESDTotal>
-          <ESDTotal
-            lg={3}
-            md={3}
-            xs={3}
-            height="15vh"
-            bgColor={"linear-gradient(45deg,#2ed8b6,#59e0c5)"}
-            header="Good"
-          >
-            {dataVoltageMonitorMachineStatus.length - errorCount}
-          </ESDTotal>
-          <ESDTotal
-            lg={3}
-            md={3}
-            xs={3}
-            height="15vh"
-            bgColor={"linear-gradient(45deg,#ffb640,#ffcb80)"}
-            header="Warning"
-          >
-            {0}
-          </ESDTotal>
-          <ESDTotal
-            lg={3}
-            md={3}
-            xs={3}
-            height="15vh"
-            bgColor={"linear-gradient(45deg,#ff5370,#ff869a)"}
-            header="Error"
-          >
-            {errorCount}
-          </ESDTotal>
-        </Grid>
         <HiBox
-          lg={12}
-          md={12}
-          xs={12}
+          lg={6}
+          md={6}
+          xs={6}
           alarn={false}
-          header="Voltage Monitor Machine Status"
-          height="45vh"
+          header="Trend Using By Day"
+          height="50vh"
           variant="filled"
-          legendItem={legendItem}
         >
-          <VoltageMonitorStatus
-            idata={dataVoltageMonitorMachineStatus}
-            onCallBack={fetchVcutMachineStatus}
-          ></VoltageMonitorStatus>
+          <ColumnChart
+            idata={dataVoltageMonitorErrorDetail}
+            onCallBack={openModalMaintenanceDetails}
+            checked={switchErAnLo}
+          ></ColumnChart>
         </HiBox>
         <HiBox
-          lg={12}
-          md={12}
-          xs={12}
+          lg={6}
+          md={6}
+          xs={6}
+          alarn={false}
+          header="Daily Inventory"
+          height="50vh"
+          variant="filled"
+        >
+          <ColumnChart
+            idata={dataVoltageMonitorErrorDetail}
+            onCallBack={openModalMaintenanceDetails}
+            checked={switchErAnLo}
+          ></ColumnChart>
+        </HiBox>
+        <HiBox
+          lg={6}
+          md={6}
+          xs={6}
           alarn={false}
           header="Voltage Monitor Error Detail"
-          height="30vh"
+          height="45vh"
+          variant="filled"
+        >
+          <TableErorOver5m
+            idata={dataVoltageMonitorErrorDetail}
+          ></TableErorOver5m>
+        </HiBox>
+        <HiBox
+          lg={6}
+          md={6}
+          xs={6}
+          alarn={false}
+          header="Voltage Monitor Error Detail"
+          height="45vh"
+          variant="filled"
+        >
+          <TableErorOver5m
+            idata={dataVoltageMonitorErrorDetail}
+          ></TableErorOver5m>
+        </HiBox>
+      </Grid>
+      <Grid
+        size={{ lg: 12, md: 12, xs: 12 }}
+        lg={9}
+        md={9}
+        xs={12}
+        container
+        columns={12}
+      >
+        <HiBox
+          lg={4}
+          md={4}
+          xs={4}
+          alarn={false}
+          header="Voltage Monitor Error Detail"
+          height="45vh"
+          variant="filled"
+        >
+          <TableErorOver5m
+            idata={dataVoltageMonitorErrorDetail}
+          ></TableErorOver5m>
+        </HiBox>
+        <HiBox
+          lg={8}
+          md={8}
+          xs={8}
+          alarn={false}
+          header="Voltage Monitor Error Detail"
+          height="45vh"
           variant="filled"
         >
           <TableErorOver5m
@@ -257,4 +274,4 @@ const VoltageMonitorDashboard = () => {
   );
 };
 
-export default memo(VoltageMonitorDashboard);
+export default memo(StencilRoomDashboard);

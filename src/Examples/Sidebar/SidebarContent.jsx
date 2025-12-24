@@ -169,6 +169,7 @@ const SidebarContent = ({ isMini ,selectedItem, setSelectedItem}) => {
         { label: 'VCut Machine Status', icon: <LensOutlinedIcon />, path: '/FATP/VCutMachineStatus'  },
         { label: 'Maintenance', icon: <LensOutlinedIcon />, path: '/FATP/MaintenanceStatus'  },
         { label: 'Voltage Monitor', icon: <LensOutlinedIcon />, path: '/FATP/VoltageMonitor'  },
+        { label: 'Stencil Room', icon: <LensOutlinedIcon />, path: '/FATP/StencilRoom'  },
       ],
     },
   ];

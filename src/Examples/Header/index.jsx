@@ -126,6 +126,7 @@ const Header = ({ children, isSticky, isMini, isSmallScreen, toggleSidebar, togg
     '/FATP/VCutMachineStatus': 'A02-FATP VCut Machine Status',
     '/FATP/MaintenanceStatus': 'A02-FATP Maintenance Status',
     '/FATP/VoltageMonitor': 'A02-FATP Voltage Monitor Dashboard',
+    '/FATP/StencilRoom': 'A02-FATP StencilRoom & Haocai Manager',
 
     // Thêm các tiêu đề khác
   };
