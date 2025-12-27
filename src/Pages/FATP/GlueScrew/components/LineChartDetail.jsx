@@ -127,7 +127,7 @@ const LineChartDetail = ({ dataForce = [], model }) => {
   const arrDefault = dataForce.find(
     (item) =>
       item.LINE === model.line &&
-      item.NAME_MACHINE === model.name &&
+      // item.NAME_MACHINE === model.name &&
       item.TYPE === model.type
   ) || { MAX_FORCE: "", MIN_FORCE: "" };
 
@@ -146,7 +146,7 @@ const LineChartDetail = ({ dataForce = [], model }) => {
             fontSize: "11px",
           },
           marker: {
-            enabled: true,
+            enabled: model.type === "Glue",
           },
         }))
       : Array.from({ length: 6 }, (_, index) => ({
@@ -202,6 +202,7 @@ const LineChartDetail = ({ dataForce = [], model }) => {
       reflow: true,
       height: parentSize.height,
       borderWidth: 0,
+      zoomType: "x",
     },
     title: {
       text: "",
@@ -238,13 +239,19 @@ const LineChartDetail = ({ dataForce = [], model }) => {
           ? model.location === "WIFI"
             ? specGlueWifi[0] * 0.9
             : specGlueMB1[0] * 0.9
-          : arrLimit.globalMin,
+          : Math.min(
+              arrDefault.MIN_FORCE || arrLimit.globalMin,
+              arrLimit.globalMin
+            ) * 0.95,
       max:
         model.type === "Glue"
           ? model.location === "WIFI"
-            ? specGlueWifi[1] * 0.9
-            : specGlueMB1[1] * 1.2
-          : arrLimit.globalMax,
+            ? specGlueWifi[1] * 1.1
+            : specGlueMB1[1] * 1.1
+          : Math.max(
+              arrDefault.MAX_FORCE || arrLimit.globalMax,
+              arrLimit.globalMax
+            ) * 1.05,
       tickAmount: 5,
       opposite: false,
       // 🚀 BỔ SUNG HAI ĐƯỜNG HIGHLIGHT (plotLines)

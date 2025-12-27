@@ -48,6 +48,8 @@ import DataGelScreen from './Pages/MPE/DataGel';
 import Temperature from './Pages/ME/Temperature';
 import VoltageMonitorDashboard from './Pages/FATP/VoltageMonitor';
 import StencilRoomDashboard from './Pages/FATP/StencilRoom';
+import ProjectManagement from './Pages/FATP/ProjectManagement';
+import MetDocument from './Pages/FATP/Documment';
 // import DryingControlScreen from './Pages/KITTING/Drying';
 
 
@@ -118,6 +120,8 @@ const AppRoutes = ({user}) => {
               <Route path='/FATP/MaintenanceStatus' element={<PrivateRoute><MaintenanceStatus/></PrivateRoute>} />
               <Route path='/FATP/VoltageMonitor' element={<PrivateRoute><VoltageMonitorDashboard/></PrivateRoute>} />
               <Route path='/FATP/StencilRoom' element={<PrivateRoute><StencilRoomDashboard/></PrivateRoute>} />
+              <Route path='/FATP/ProjectManagement' element={<PrivateRoute><ProjectManagement/></PrivateRoute>} />
+              <Route path='/FATP/MetDocument' element={<PrivateRoute><MetDocument/></PrivateRoute>} />
               
               
               <Route path='/ErrorPage' element={<ErrorPage/>}/>

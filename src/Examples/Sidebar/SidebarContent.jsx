@@ -1,57 +1,82 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
-import { List, ListItem, ListItemIcon, ListItemText, ListSubheader, Collapse, Box } from '@mui/material';
-import ArchiveOutlinedIcon from '@mui/icons-material/ArchiveOutlined';
-import PrecisionManufacturingOutlinedIcon from '@mui/icons-material/PrecisionManufacturingOutlined';
-import InventoryOutlinedIcon from '@mui/icons-material/InventoryOutlined';
-import KeyboardArrowRightOutlinedIcon from '@mui/icons-material/KeyboardArrowRightOutlined';
-import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
-import LensOutlinedIcon from '@mui/icons-material/LensOutlined';
-import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-import ExpandMore from '@mui/icons-material/ExpandMore';
-import DocumentScannerOutlinedIcon from '@mui/icons-material/DocumentScannerOutlined';
-import { AccountTreeOutlined, AnalyticsOutlined, ApiOutlined, DeveloperBoard, FactCheck, FactCheckOutlined, MarkChatReadOutlined, PortableWifiOffOutlined, ProductionQuantityLimitsOutlined, ProductionQuantityLimitsRounded, Propane, RocketLaunchOutlined, RoundaboutLeftOutlined, SafetyDividerOutlined } from '@mui/icons-material';
-import { useSelector, useDispatch } from 'react-redux';
-import { setParam, resetParam } from '../../Redux/Actions/paramSlice';
+import {
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  ListSubheader,
+  Collapse,
+  Box,
+} from "@mui/material";
+import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
+import PrecisionManufacturingOutlinedIcon from "@mui/icons-material/PrecisionManufacturingOutlined";
+import InventoryOutlinedIcon from "@mui/icons-material/InventoryOutlined";
+import KeyboardArrowRightOutlinedIcon from "@mui/icons-material/KeyboardArrowRightOutlined";
+import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
+import LensOutlinedIcon from "@mui/icons-material/LensOutlined";
+import ExitToAppIcon from "@mui/icons-material/ExitToApp";
+import ExpandMore from "@mui/icons-material/ExpandMore";
+import DocumentScannerOutlinedIcon from "@mui/icons-material/DocumentScannerOutlined";
+import {
+  AccountTreeOutlined,
+  AnalyticsOutlined,
+  ApiOutlined,
+  DeveloperBoard,
+  FactCheck,
+  FactCheckOutlined,
+  MarkChatReadOutlined,
+  PortableWifiOffOutlined,
+  ProductionQuantityLimitsOutlined,
+  ProductionQuantityLimitsRounded,
+  Propane,
+  RocketLaunchOutlined,
+  RoundaboutLeftOutlined,
+  SafetyDividerOutlined,
+  ConstructionRounded,
+} from "@mui/icons-material";
+import { useSelector, useDispatch } from "react-redux";
+import { setParam, resetParam } from "../../Redux/Actions/paramSlice";
 
-
-
-const SidebarContent = ({ isMini ,selectedItem, setSelectedItem}) => {
+const SidebarContent = ({ isMini, selectedItem, setSelectedItem }) => {
   const [openStates, setOpenStates] = useState({});
 
   const toggleMenu = (menu) => {
     setOpenStates((prev) => ({ ...prev, [menu]: !prev[menu] }));
   };
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const handleSelectItem = (menuKey, subKey = null, path = null) => {
     setSelectedItem({ key: menuKey, subKey });
-    if(path) navigate(path);
+    if (path) navigate(path);
 
     dispatch(resetParam());
-    const parts =  path?.split('/')
-    if(parts?.length >= 3){
-      dispatch(setParam({
-        page:{
-          dep: path.split('/')[1],
-          page_name: path.split('/')[2],
-        },
-       
-      }))
+    const parts = path?.split("/");
+    if (parts?.length >= 3) {
+      dispatch(
+        setParam({
+          page: {
+            dep: path.split("/")[1],
+            page_name: path.split("/")[2],
+          },
+        })
+      );
     }
-    
-    
   };
 
   const menuItems = [
     {
-      label: 'Daily Report',
+      label: "Daily Report",
       icon: <InventoryOutlinedIcon />,
-      key: 'DailyReport',
+      key: "DailyReport",
       subItems: [
-        { label: 'LCR Report', icon: <LensOutlinedIcon />, path: '/DailyReport/LCRReport' },
+        {
+          label: "LCR Report",
+          icon: <LensOutlinedIcon />,
+          path: "/DailyReport/LCRReport",
+        },
 
         // { label: 'SMT INTROLDUCTION PROCESS', icon: <LensOutlinedIcon />, path: '/Kitting/StencilControl' },
         // { label: 'Training OP', icon: <LensOutlinedIcon />, path: '/Kitting/StencilControl' },
@@ -65,19 +90,46 @@ const SidebarContent = ({ isMini ,selectedItem, setSelectedItem}) => {
       ],
     },
     {
-      label: 'Kitting',
+      label: "Kitting",
       icon: <ArchiveOutlinedIcon />,
-      key: 'kitting',
+      key: "kitting",
       subItems: [
-        { label: 'Material Return', icon: <LensOutlinedIcon />, path: '/Kitting/MaterialReturn' },
-        { label: 'Solder Paste and Glue', icon: <LensOutlinedIcon />, path: '/Kitting/SolderPasteAndGlue' },
-        { label: 'Stencil Control', icon: <LensOutlinedIcon />, path: '/Kitting/StencilControl' },
-        { label: 'Squeegee Holders Control', icon: <LensOutlinedIcon />, path: '/Kitting/SqueegeeHolders' },
-        { label: 'PCB Laser', icon: <LensOutlinedIcon />, path: '/Kitting/PCBLaser' },
-        { label: 'Material Reuse', icon: <LensOutlinedIcon />, path: '/Kitting/MaterialReuse' },
-        { label: 'Drying Control', icon: <LensOutlinedIcon />, path: '/Kitting/DryingControl' },
+        {
+          label: "Material Return",
+          icon: <LensOutlinedIcon />,
+          path: "/Kitting/MaterialReturn",
+        },
+        {
+          label: "Solder Paste and Glue",
+          icon: <LensOutlinedIcon />,
+          path: "/Kitting/SolderPasteAndGlue",
+        },
+        {
+          label: "Stencil Control",
+          icon: <LensOutlinedIcon />,
+          path: "/Kitting/StencilControl",
+        },
+        {
+          label: "Squeegee Holders Control",
+          icon: <LensOutlinedIcon />,
+          path: "/Kitting/SqueegeeHolders",
+        },
+        {
+          label: "PCB Laser",
+          icon: <LensOutlinedIcon />,
+          path: "/Kitting/PCBLaser",
+        },
+        {
+          label: "Material Reuse",
+          icon: <LensOutlinedIcon />,
+          path: "/Kitting/MaterialReuse",
+        },
+        {
+          label: "Drying Control",
+          icon: <LensOutlinedIcon />,
+          path: "/Kitting/DryingControl",
+        },
 
-        
         // { label: 'Inventory Kitting', icon: <LensOutlinedIcon />, path: '/Kitting/StencilControl' },
         // { label: 'Inventory MO', icon: <LensOutlinedIcon />, path: '/Kitting/StencilControl' },
         // { label: 'Config Material', icon: <LensOutlinedIcon />, path: '/Kitting/StencilControl' },
@@ -90,86 +142,208 @@ const SidebarContent = ({ isMini ,selectedItem, setSelectedItem}) => {
       ],
     },
     {
-      label: 'Production',
+      label: "Production",
       icon: <DeveloperBoard />,
-      key: 'production',
+      key: "production",
       subItems: [
-        { label: 'MO Control', icon: <LensOutlinedIcon /> , path: '/Production/MoControl'  },
-        { label: 'Wip Status', icon: <LensOutlinedIcon /> , path: '/Production/WipStatus'  },
-        { label: 'SMT Yield Rate', icon: <LensOutlinedIcon /> , path: '/Production/SMTYieldRate'},
+        {
+          label: "MO Control",
+          icon: <LensOutlinedIcon />,
+          path: "/Production/MoControl",
+        },
+        {
+          label: "Wip Status",
+          icon: <LensOutlinedIcon />,
+          path: "/Production/WipStatus",
+        },
+        {
+          label: "SMT Yield Rate",
+          icon: <LensOutlinedIcon />,
+          path: "/Production/SMTYieldRate",
+        },
       ],
     },
     {
-      label: 'SMT',
+      label: "SMT",
       icon: <RocketLaunchOutlined />,
-      key: 'smt',
+      key: "smt",
       subItems: [
-        { label: 'Aoi Spi Machine', icon: <LensOutlinedIcon /> , path: '/SMT/AoiSpiMachine'},
-        { label: 'Machine Status', icon: <LensOutlinedIcon /> , path: '/SMT/SMTMachine'},
+        {
+          label: "Aoi Spi Machine",
+          icon: <LensOutlinedIcon />,
+          path: "/SMT/AoiSpiMachine",
+        },
+        {
+          label: "Machine Status",
+          icon: <LensOutlinedIcon />,
+          path: "/SMT/SMTMachine",
+        },
         // { label: 'Introduction', icon: <LensOutlinedIcon /> , path: '/SMT/SMTMachine'  },
-        { label: 'Xray Machine', icon: <LensOutlinedIcon /> , path: '/SMT/XRAYMachine'},
-        { label: 'Printer Machine', icon: <LensOutlinedIcon /> , path: '/SMT/PrinterMachine'},
-        { label: 'AOI Machine', icon: <LensOutlinedIcon /> , path: '/SMT/AoiMachine'},
-        { label: 'Mounter Pickup', icon: <LensOutlinedIcon /> , path: '/SMT/MounterPickup'},
-        { label: 'PCB Traceability', icon: <LensOutlinedIcon /> , path: '/SMT/AOITraceability'},
-        { label: 'Reflow Machine', icon: <LensOutlinedIcon /> , path: '/SMT/ReflowMachine'},
+        {
+          label: "Xray Machine",
+          icon: <LensOutlinedIcon />,
+          path: "/SMT/XRAYMachine",
+        },
+        {
+          label: "Printer Machine",
+          icon: <LensOutlinedIcon />,
+          path: "/SMT/PrinterMachine",
+        },
+        {
+          label: "AOI Machine",
+          icon: <LensOutlinedIcon />,
+          path: "/SMT/AoiMachine",
+        },
+        {
+          label: "Mounter Pickup",
+          icon: <LensOutlinedIcon />,
+          path: "/SMT/MounterPickup",
+        },
+        {
+          label: "PCB Traceability",
+          icon: <LensOutlinedIcon />,
+          path: "/SMT/AOITraceability",
+        },
+        {
+          label: "Reflow Machine",
+          icon: <LensOutlinedIcon />,
+          path: "/SMT/ReflowMachine",
+        },
       ],
     },
     {
-      label: 'ME',
+      label: "ME",
       icon: <AccountTreeOutlined />,
-      key: 'me',
+      key: "me",
       subItems: [
-       
-        { label: 'Feeder Control', icon: <LensOutlinedIcon /> , path: '/ME/FeederControl'},
-        { label: 'Xray Machine', icon: <LensOutlinedIcon /> , path: '/SMT/XRAYMachine'},
-        { label: 'Printer Machine', icon: <LensOutlinedIcon /> , path: '/SMT/PrinterMachine'},
-        { label: 'Compare Files', icon: <LensOutlinedIcon /> , path: '/ME/CompareFiles'},
-        { label: 'Temperature', icon: <LensOutlinedIcon /> , path: '/ME/Temperature'},
-        
+        {
+          label: "Feeder Control",
+          icon: <LensOutlinedIcon />,
+          path: "/ME/FeederControl",
+        },
+        {
+          label: "Xray Machine",
+          icon: <LensOutlinedIcon />,
+          path: "/SMT/XRAYMachine",
+        },
+        {
+          label: "Printer Machine",
+          icon: <LensOutlinedIcon />,
+          path: "/SMT/PrinterMachine",
+        },
+        {
+          label: "Compare Files",
+          icon: <LensOutlinedIcon />,
+          path: "/ME/CompareFiles",
+        },
+        {
+          label: "Temperature",
+          icon: <LensOutlinedIcon />,
+          path: "/ME/Temperature",
+        },
       ],
     },
     {
-      label: 'PE',
-      icon: <AnalyticsOutlined/>,
-      key: 'pe',
+      label: "PE",
+      icon: <AnalyticsOutlined />,
+      key: "pe",
       subItems: [
-        { label: 'BN3-Yield rate', icon: <LensOutlinedIcon />, path: '/PE/YieldRateControl'  },
-        { label: 'Log Reader', icon: <LensOutlinedIcon /> , path: '/PE/LogReader' },
+        {
+          label: "BN3-Yield rate",
+          icon: <LensOutlinedIcon />,
+          path: "/PE/YieldRateControl",
+        },
+        {
+          label: "Log Reader",
+          icon: <LensOutlinedIcon />,
+          path: "/PE/LogReader",
+        },
       ],
     },
-    
+
     {
-      label: 'RE',
+      label: "RE",
       icon: <ApiOutlined />,
-      key: 're',
+      key: "re",
       subItems: [
         // { label: 'Introduction', icon: <LensOutlinedIcon />, path: '/Kitting/StencilControl'  },
         // { label: 'API', icon: <LensOutlinedIcon /> , path: '/Kitting/StencilControl' },
       ],
     },
     {
-      label: 'FAP-SOLO',
+      label: "FAP-SOLO",
       icon: <FactCheckOutlined />,
-      key: 'mpe',
+      key: "mpe",
       subItems: [
-        { label: 'BN3-ESD Control', icon: <LensOutlinedIcon />, path: '/MPE/ESDControl'  },
-        { label: 'BN3-MPE Spare Parts', icon: <LensOutlinedIcon />, path: '/MPE/SpareParts'  },
-        { label: 'BN3-MPE Data Gel', icon: <LensOutlinedIcon />, path: '/MPE/DataGelScreen'  },
-
+        {
+          label: "BN3-ESD Control",
+          icon: <LensOutlinedIcon />,
+          path: "/MPE/ESDControl",
+        },
+        {
+          label: "BN3-MPE Spare Parts",
+          icon: <LensOutlinedIcon />,
+          path: "/MPE/SpareParts",
+        },
+        {
+          label: "BN3-MPE Data Gel",
+          icon: <LensOutlinedIcon />,
+          path: "/MPE/DataGelScreen",
+        },
       ],
     },
     {
-      label: 'FATP-SIGMA',
-      icon: <PrecisionManufacturingOutlinedIcon />,
-      key: 'fatp',
+      label: "MET SYSTEM",
+      icon: <ConstructionRounded />,
+      key: "met",
       subItems: [
-        { label: 'Machine Control', icon: <LensOutlinedIcon />, path: '/FATP/FATPMachineControl'  },
-        { label: 'Glue Screw Status', icon: <LensOutlinedIcon />, path: '/FATP/GlueScrewStatus'  },
-        { label: 'VCut Machine Status', icon: <LensOutlinedIcon />, path: '/FATP/VCutMachineStatus'  },
-        { label: 'Maintenance', icon: <LensOutlinedIcon />, path: '/FATP/MaintenanceStatus'  },
-        { label: 'Voltage Monitor', icon: <LensOutlinedIcon />, path: '/FATP/VoltageMonitor'  },
-        { label: 'Stencil Room', icon: <LensOutlinedIcon />, path: '/FATP/StencilRoom'  },
+        {
+          label: "Machine Control",
+          icon: <LensOutlinedIcon />,
+          path: "/FATP/FATPMachineControl",
+        },
+        {
+          label: "Glue Screw Status",
+          icon: <LensOutlinedIcon />,
+          path: "/FATP/GlueScrewStatus",
+        },
+        {
+          label: "VCut Machine Status",
+          icon: <LensOutlinedIcon />,
+          path: "/FATP/VCutMachineStatus",
+        },
+        {
+          label: "Maintenance",
+          icon: <LensOutlinedIcon />,
+          path: "/FATP/MaintenanceStatus",
+        },
+        {
+          label: "Voltage Monitor",
+          icon: <LensOutlinedIcon />,
+          path: "/FATP/VoltageMonitor",
+        },
+        {
+          label: "Stencil Room",
+          icon: <LensOutlinedIcon />,
+          path: "/FATP/StencilRoom",
+        },
+        {
+          label: "MET Document",
+          icon: <LensOutlinedIcon />,
+          path: "/FATP/MetDocument",
+        },
+      ],
+    },
+    {
+      label: "FATP",
+      icon: <PrecisionManufacturingOutlinedIcon />,
+      key: "fatp",
+      subItems: [
+        {
+          label: "Project Management",
+          icon: <LensOutlinedIcon />,
+          path: "/FATP/ProjectManagement",
+        },
       ],
     },
   ];
@@ -177,10 +351,10 @@ const SidebarContent = ({ isMini ,selectedItem, setSelectedItem}) => {
   // useEffect(() => {
   //   const pathParts = location.pathname.split('/');
   //   if(location.pathname === '/'){
-      
+
   //     dispatch(setParam({
   //       page:{dep: 'dashboard',page_name: ''},
-       
+
   //     }));
   //     setSelectedItem({key: 'dashboard', subKey: null});
   //     return;
@@ -189,10 +363,10 @@ const SidebarContent = ({ isMini ,selectedItem, setSelectedItem}) => {
   //   if(pathParts?.length >= 3){
   //     const dep = pathParts[1];
   //     const page = pathParts[2];
-      
+
   //     for(const menu of menuItems){
   //       if(menu.key.toLowerCase() === dep.toLowerCase()){
-  //         const subIndex = menu.subItems.findIndex((sub) => 
+  //         const subIndex = menu.subItems.findIndex((sub) =>
   //           sub.path?.toLowerCase() === `/${dep.toLowerCase()}/${page.toLowerCase()}`
   //         );
   //         if(subIndex !== -1){
@@ -202,7 +376,7 @@ const SidebarContent = ({ isMini ,selectedItem, setSelectedItem}) => {
   //               dep: dep,
   //               page_name: page,
   //             },
-             
+
   //           }));
   //           break;
   //         }
@@ -214,27 +388,36 @@ const SidebarContent = ({ isMini ,selectedItem, setSelectedItem}) => {
   return (
     <List
       sx={{
-        maxHeight: 'calc(100vh - 64px)',
-        overflowY: 'auto',
-        overflowX: 'hidden',
-        
-        padding: 'unset',
-        '&::-webkit-scrollbar': { width: 0, opacity: 0 },
-        '&:hover::-webkit-scrollbar': { width: 4, opacity: 1 },
-        '&::-webkit-scrollbar-thumb': { backgroundColor: '#cdcdcd8c', borderRadius: '10px' },
-        transition: 'width 0.5s ease, opacity 0.5s ease',
+        maxHeight: "calc(100vh - 64px)",
+        overflowY: "auto",
+        overflowX: "hidden",
+
+        padding: "unset",
+        "&::-webkit-scrollbar": { width: 0, opacity: 0 },
+        "&:hover::-webkit-scrollbar": { width: 4, opacity: 1 },
+        "&::-webkit-scrollbar-thumb": {
+          backgroundColor: "#cdcdcd8c",
+          borderRadius: "10px",
+        },
+        transition: "width 0.5s ease, opacity 0.5s ease",
       }}
     >
       <ListItem
-        
-        onClick={() => handleSelectItem('dashboard', null, '/')}
+        onClick={() => handleSelectItem("dashboard", null, "/")}
         sx={{
-          background: selectedItem.key === 'dashboard' ? 'linear-gradient(to left, rgba(120, 123, 255, 0.9), rgba(120, 123, 255, 0.3))' : 'transparent',
-          '&:hover': { background: 'linear-gradient(to left, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1))' },
-          transition: 'background 0.3s ease', margin: '3px 0px',
-          borderBottomRightRadius: '20px',
-          borderTopRightRadius: '20px',
-          cursor: 'pointer',
+          background:
+            selectedItem.key === "dashboard"
+              ? "linear-gradient(to left, rgba(120, 123, 255, 0.9), rgba(120, 123, 255, 0.3))"
+              : "transparent",
+          "&:hover": {
+            background:
+              "linear-gradient(to left, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1))",
+          },
+          transition: "background 0.3s ease",
+          margin: "3px 0px",
+          borderBottomRightRadius: "20px",
+          borderTopRightRadius: "20px",
+          cursor: "pointer",
         }}
       >
         <ListItemIcon sx={{ minWidth: 36 }}>
@@ -242,11 +425,10 @@ const SidebarContent = ({ isMini ,selectedItem, setSelectedItem}) => {
         </ListItemIcon>
         <Box
           sx={{
-
-            transform: !isMini ? 'translateX(0)' : 'translateX(-5px)',
-            transition: 'transform 0.4s ease-in-out, opacity 0.4s ease',
+            transform: !isMini ? "translateX(0)" : "translateX(-5px)",
+            transition: "transform 0.4s ease-in-out, opacity 0.4s ease",
             opacity: !isMini ? 1 : 0,
-            cursor: 'pointer',
+            cursor: "pointer",
           }}
         >
           <ListItemText primary="Dashboard" sx={{ margin: 0 }} />
@@ -270,22 +452,45 @@ const SidebarContent = ({ isMini ,selectedItem, setSelectedItem}) => {
   );
 };
 
-const SubMenu = ({ isMini, open, onToggle, icon, title, subItems, selectedItem, onSelectItem }) => (
+const SubMenu = ({
+  isMini,
+  open,
+  onToggle,
+  icon,
+  title,
+  subItems,
+  selectedItem,
+  onSelectItem,
+}) => (
   <>
-    <ListItem  onClick={onToggle} sx={{ display: 'flex', alignItems: 'center',   borderBottomRightRadius: '20px', borderTopRightRadius: '20px',cursor: 'pointer', }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+    <ListItem
+      onClick={onToggle}
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        borderBottomRightRadius: "20px",
+        borderTopRightRadius: "20px",
+        cursor: "pointer",
+      }}
+    >
+      <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
         <ListItemIcon sx={{ minWidth: 36 }}>{icon}</ListItemIcon>
         <Box
           sx={{
-            transform: !isMini ? 'translateX(0)' : 'translateX(-5px)',
-            transition: 'transform 0.4s ease-in-out, opacity 0.4s ease',
+            transform: !isMini ? "translateX(0)" : "translateX(-5px)",
+            transition: "transform 0.4s ease-in-out, opacity 0.4s ease",
             opacity: !isMini ? 1 : 0,
-
           }}
         >
           <ListItemText
             primary={title}
-            sx={{ margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer' }}
+            sx={{
+              margin: 0,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              cursor: "pointer",
+            }}
           />
         </Box>
       </Box>
@@ -295,31 +500,33 @@ const SubMenu = ({ isMini, open, onToggle, icon, title, subItems, selectedItem, 
       <List component="div" disablePadding>
         {subItems.map((subItem, index) => (
           <ListItem
-            
             key={index}
             onClick={() => onSelectItem(title, index, subItem.path)}
             sx={{
               pl: 3.2,
               background:
                 selectedItem.key === title && selectedItem.subKey === index
-                  ? 'linear-gradient(to left, rgba(120, 123, 255, 0.9), rgba(120, 123, 255, 0.3))'
-                  : 'transparent',
-              '&:hover': { background: 'linear-gradient(to left, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1))' },
-              transition: 'background 0.3s ease',margin: '3px 0px',
-        
-              borderBottomRightRadius: '20px',
-              borderTopRightRadius: '20px',
-              cursor: 'pointer',
-            }}
+                  ? "linear-gradient(to left, rgba(120, 123, 255, 0.9), rgba(120, 123, 255, 0.3))"
+                  : "transparent",
+              "&:hover": {
+                background:
+                  "linear-gradient(to left, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1))",
+              },
+              transition: "background 0.3s ease",
+              margin: "3px 0px",
 
+              borderBottomRightRadius: "20px",
+              borderTopRightRadius: "20px",
+              cursor: "pointer",
+            }}
           >
-            <ListItemIcon sx={{ minWidth: 36, '& svg': { fontSize: '14px' } }}>
+            <ListItemIcon sx={{ minWidth: 36, "& svg": { fontSize: "14px" } }}>
               {subItem.icon}
             </ListItemIcon>
             <Box
               sx={{
-                transform: !isMini ? 'translateX(0)' : 'translateX(-5px)',
-                transition: 'transform 0.4s ease-in-out, opacity 0.4s ease',
+                transform: !isMini ? "translateX(0)" : "translateX(-5px)",
+                transition: "transform 0.4s ease-in-out, opacity 0.4s ease",
                 opacity: !isMini ? 1 : 0,
               }}
             >
@@ -327,10 +534,10 @@ const SubMenu = ({ isMini, open, onToggle, icon, title, subItems, selectedItem, 
                 primary={subItem.label}
                 sx={{
                   margin: 0,
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  cursor: 'pointer',
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  cursor: "pointer",
                 }}
               />
             </Box>
@@ -342,4 +549,3 @@ const SubMenu = ({ isMini, open, onToggle, icon, title, subItems, selectedItem, 
 );
 
 export default SidebarContent;
-

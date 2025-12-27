@@ -127,6 +127,8 @@ const Header = ({ children, isSticky, isMini, isSmallScreen, toggleSidebar, togg
     '/FATP/MaintenanceStatus': 'A02-FATP Maintenance Status',
     '/FATP/VoltageMonitor': 'A02-FATP Voltage Monitor Dashboard',
     '/FATP/StencilRoom': 'A02-FATP StencilRoom & Haocai Manager',
+    '/FATP/ProjectManagement': 'A02-FATP Project System',
+    '/FATP/MetDocument': 'A02-MET Document',
 
     // Thêm các tiêu đề khác
   };

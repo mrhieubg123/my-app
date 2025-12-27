@@ -19,19 +19,19 @@ import {
   Snackbar,
   ToggleButton,
   ToggleButtonGroup,
+  ListItemButton,
 } from "@mui/material";
 import MuiAlert from "@mui/material/Alert";
-import DeleteIcon from "@mui/icons-material/Delete";
-import UploadFileIcon from "@mui/icons-material/UploadFile";
-import DownloadIcon from "@mui/icons-material/Download";
-import LockIcon from "@mui/icons-material/Lock";
-import LockOpenIcon from "@mui/icons-material/LockOpen";
-import axios from "axios";
 import { useTheme } from "@mui/material/styles";
 import {
   AddOutlined,
+  ArrowBackIos,
   LockOutlined,
   SyncLockOutlined,
+  Download,
+  UploadFile,
+  Delete,
+  LockOpen,
 } from "@mui/icons-material";
 import { getAuthorizedAxiosIntance } from "../../utils/axiosConfig";
 const axiosInstance = await getAuthorizedAxiosIntance();
@@ -69,7 +69,7 @@ export default function FileExplorer() {
 
   const [newFolderDialogOpen, setNewFolderDialogOpen] = useState(false);
 
-  const [sortBy, setSortBy] = useState("name");
+  const [sortBy, setSortBy] = useState("date");
   const [sortOrder, setSortOrder] = useState("asc");
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -142,7 +142,7 @@ export default function FileExplorer() {
     if (!newFolder) return;
     try {
       await axiosInstance.post(`${API}/folder`, {
-        folder: newFolder,
+        folder: `${selectedFolder}/${newFolder}`,
         password: newFolderPassword,
       });
       showToast("✅ Đã tạo folder");
@@ -150,6 +150,7 @@ export default function FileExplorer() {
       setNewFolderPassword("");
       setNewFolderDialogOpen(false);
       fetchFolders();
+      await fetchFiles(selectedFolder, accessPassword);
     } catch (err) {
       showToast(err.response?.data?.message || "❌ Lỗi tạo folder", "error");
     }
@@ -214,12 +215,13 @@ export default function FileExplorer() {
   const handleDeleteFile = (filename) => {
     confirmDelete("file", filename, async (password) => {
       try {
-        await axiosInstance.delete(
-          `${API}/file/${selectedFolder}/${filename}`,
-          {
-            data: { password },
-          }
-        );
+        await axiosInstance.delete(`${API}/file/delete`, {
+          data: {
+            password,
+            folder: selectedFolder,
+            filename,
+          },
+        });
         showToast(`Đã xóa file "${filename}"`);
         fetchFiles(selectedFolder, accessPassword);
       } catch (err) {
@@ -318,6 +320,32 @@ export default function FileExplorer() {
     await fetchFiles(selectedFolderForPassword, accessPassword);
   };
 
+  const backFolder = async () => {
+    const normalized = (selectedFolder || "")
+      .replace(/\\/g, "/") // hỗ trợ cả \ của Windows
+      .replace(/\/+/g, "/") // gộp nhiều dấu /
+      .replace(/\/$/, ""); // bỏ / cuối nếu có
+
+    if (!normalized) return; // đang rỗng thì thôi
+
+    const parts = normalized.split("/").filter(Boolean);
+    if (parts.length <= 1) {
+      setSelectedFolder(""); // về root
+      setFiles([]);
+      return;
+    }
+
+    parts.pop(); // bỏ folder cuối
+    await fetchFiles(parts.join("/"), accessPassword);
+
+    // setSelectedFolder(parts.join("/"));
+  };
+
+  const goToFolder = async (folder) => {
+    const parts = selectedFolder + `/${folder}`;
+    await fetchFiles(parts, accessPassword);
+  };
+
   const filteredFiles = files.filter((file) =>
     file.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -382,9 +410,11 @@ export default function FileExplorer() {
           }}
         >
           <Typography variant="h6">📁 Folders</Typography>
-          <Button size="small" onClick={() => setNewFolderDialogOpen(true)}>
-            <AddOutlined></AddOutlined>
-          </Button>
+          {selectedFolder === "" && (
+            <Button size="small" onClick={() => setNewFolderDialogOpen(true)}>
+              <AddOutlined></AddOutlined>
+            </Button>
+          )}
         </Box>
 
         <List dense>
@@ -393,7 +423,7 @@ export default function FileExplorer() {
               key={folder.name}
               button
               selected={folder.name === selectedFolder}
-              onClick={() => fetchFiles(folder.name,"",folder)}
+              onClick={() => fetchFiles(folder.name, "", folder)}
               sx={{ height: "50px", borderBottom: "1px solid #999" }}
             >
               <ListItemText
@@ -411,7 +441,7 @@ export default function FileExplorer() {
                   <IconButton
                     onClick={() => openPasswordDialog(folder.name, "set")}
                   >
-                    <LockOpenIcon color="primary" />
+                    <LockOpen color="primary" />
                   </IconButton>
                 )}
                 {folder.hasPassword ? (
@@ -427,7 +457,7 @@ export default function FileExplorer() {
                   edge="end"
                   onClick={() => handleDeleteFolder(folder.name)}
                 >
-                  <DeleteIcon color="error" />
+                  <Delete color="error" />
                 </IconButton>
               </ListItemSecondaryAction>
             </ListItem>
@@ -455,8 +485,44 @@ export default function FileExplorer() {
           }}
         >
           <Typography variant="h6" gutterBottom>
+            {selectedFolder && (
+              <IconButton
+                sx={{
+                  border: "1px solid",
+                  borderColor: "divider",
+                  borderRadius: 1,
+                  width: 28,
+                  height: 28,
+                  backgroundColor: "primary.main",
+                  "&:hover": {
+                    borderColor: "text.primary",
+                    backgroundColor: "action.hover",
+                  },
+                }}
+                onClick={() => backFolder()}
+              >
+                <ArrowBackIos size="small" />
+              </IconButton>
+            )}
             📄 Files in:{" "}
-            <strong> / {selectedFolder || "Chưa chọn folder"}</strong>
+            <strong> / {selectedFolder || "Chưa chọn folder"} </strong>
+            <IconButton
+              sx={{
+                border: "1px solid",
+                borderColor: "divider",
+                borderRadius: "50%",
+                width: 24,
+                height: 24,
+                backgroundColor: "primary.main",
+                "&:hover": {
+                  borderColor: "text.primary",
+                  backgroundColor: "action.hover",
+                },
+              }}
+              onClick={() => setNewFolderDialogOpen(true)}
+            >
+              <AddOutlined size="small" />
+            </IconButton>
           </Typography>
           {selectedFolder && (
             <Stack
@@ -468,7 +534,7 @@ export default function FileExplorer() {
               <Button
                 variant={isDragging ? "outlined" : "contained"}
                 component="label"
-                startIcon={<UploadFileIcon />}
+                startIcon={<UploadFile />}
                 sx={{ whiteSpace: "nowrap" }}
                 onDrop={handleDrop}
                 onDragOver={handleDropOver}
@@ -561,19 +627,50 @@ export default function FileExplorer() {
         >
           <List dense>
             {sortedFiles.map((file) => (
-              <ListItem key={file.name} divider>
-                <ListItemText
-                  primary={file.name}
-                  secondary={`${formatBytes(file.size)} | ${formatDate(
-                    file.createAt
-                  )}`}
-                />
-                <IconButton onClick={() => handleDownload(file.name)}>
-                  <DownloadIcon />
-                </IconButton>
-                <IconButton onClick={() => handleDeleteFile(file.name)}>
-                  <DeleteIcon color="error" />
-                </IconButton>
+              <ListItem
+                key={file.name}
+                divider
+                disablePadding
+                secondaryAction={
+                  <>
+                    {file.isFolder === false && (
+                      <IconButton
+                        edge="end"
+                        onClick={(e) => {
+                          e.stopPropagation(); // ✅ không trigger click item
+                          handleDownload(file.name);
+                        }}
+                      >
+                        <Download />
+                      </IconButton>
+                    )}
+                    <IconButton
+                      edge="end"
+                      onClick={(e) => {
+                        e.stopPropagation(); // ✅ không trigger click item
+                        handleDeleteFile(file.name);
+                      }}
+                    >
+                      <Delete color="error" />
+                    </IconButton>
+                  </>
+                }
+              >
+                <ListItemButton
+                  onClick={() => {
+                    // ✅ click vào item
+                    if (file.isFolder) {
+                      goToFolder(file.name); // bạn tự implement
+                    }
+                  }}
+                >
+                  <ListItemText
+                    primary={file.name}
+                    secondary={`${
+                      file.isFolder ? "Folder" : formatBytes(file.size)
+                    } | ${formatDate(file.createAt)}`}
+                  />
+                </ListItemButton>
               </ListItem>
             ))}
           </List>
