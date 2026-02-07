@@ -344,6 +344,11 @@ const SidebarContent = ({ isMini, selectedItem, setSelectedItem }) => {
           icon: <LensOutlinedIcon />,
           path: "/FATP/ProjectManagement",
         },
+         {
+          label: "Yield Rate",
+          icon: <LensOutlinedIcon />,
+          path: "/FATP/YieldRatePTH",
+        },
       ],
     },
   ];

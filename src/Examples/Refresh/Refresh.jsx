@@ -61,7 +61,7 @@ const Refresh = () => {
             color:theme.palette.primary.conponent,
             transition: 'transform 0.25s ease-out',
             transformOrigin: 'right bottom',
-            zIndex: 889,
+            zIndex: 100,
             opacity:  1 ,
             transform: 'scale(1) translateX(65%)',
             borderTopRightRadius: 'unset',

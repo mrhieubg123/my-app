@@ -58,7 +58,7 @@ const SubMenu = ({
           <ListItem
             key={index}
             // onClick={() => onSelectItem(title, index, subItem.path)}
-            onClick={() => onSelectItem(`/${subItem.label}`, "")}
+            onClick={() => onSelectItem(`/${subItem.label}`)}
             sx={{
               pl: 3.2,
               // background:

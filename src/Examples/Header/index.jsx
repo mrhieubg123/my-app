@@ -129,6 +129,7 @@ const Header = ({ children, isSticky, isMini, isSmallScreen, toggleSidebar, togg
     '/FATP/StencilRoom': 'A02-FATP StencilRoom & Haocai Manager',
     '/FATP/ProjectManagement': 'A02-FATP Project System',
     '/FATP/MetDocument': 'A02-MET Document',
+    '/FATP/YieldRatePTH': 'A02-Yield Rate',
 
     // Thêm các tiêu đề khác
   };

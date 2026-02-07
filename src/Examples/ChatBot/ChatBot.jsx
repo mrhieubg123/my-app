@@ -260,7 +260,7 @@ const ChatBot = ({ isOpen, isPin, onStateChange, onFileChange }) => {
             transition: "transform 0.25s ease-out",
             transform: !isOpen ? "scale(1) translateX(45%)" : "scale(0)",
             transformOrigin: "right bottom",
-            zIndex: 9999,
+            zIndex: 100,
             opacity: 1,
             borderTopRightRadius: "unset",
             borderBottomRightRadius: "unset",
@@ -320,7 +320,7 @@ const ChatBot = ({ isOpen, isPin, onStateChange, onFileChange }) => {
           flexDirection: "column",
           borderRadius: 3,
           overflow: "hidden",
-          zIndex: 999,
+          zIndex: 100,
           height: "90vh", // Full height minus padding
           transition: "transform 0.25s ease-out",
           transform: isOpen ? "scale(1)" : "scale(0)",

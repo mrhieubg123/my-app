@@ -50,6 +50,7 @@ import VoltageMonitorDashboard from './Pages/FATP/VoltageMonitor';
 import StencilRoomDashboard from './Pages/FATP/StencilRoom';
 import ProjectManagement from './Pages/FATP/ProjectManagement';
 import MetDocument from './Pages/FATP/Documment';
+import YieldRatePTH from './Pages/FATP/YieldRate';
 // import DryingControlScreen from './Pages/KITTING/Drying';
 
 
@@ -122,6 +123,7 @@ const AppRoutes = ({user}) => {
               <Route path='/FATP/StencilRoom' element={<PrivateRoute><StencilRoomDashboard/></PrivateRoute>} />
               <Route path='/FATP/ProjectManagement' element={<PrivateRoute><ProjectManagement/></PrivateRoute>} />
               <Route path='/FATP/MetDocument' element={<PrivateRoute><MetDocument/></PrivateRoute>} />
+              <Route path='/FATP/YieldRatePTH' element={<PrivateRoute><YieldRatePTH/></PrivateRoute>} />
               
               
               <Route path='/ErrorPage' element={<ErrorPage/>}/>

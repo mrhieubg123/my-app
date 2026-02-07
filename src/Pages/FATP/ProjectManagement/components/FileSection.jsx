@@ -10,10 +10,11 @@ import {
   DialogContent,
   DialogActions,
   IconButton,
-  Paper,
   Stack,
   Snackbar,
   Tooltip,
+  Grid,
+  MenuItem,
 } from "@mui/material";
 import MuiAlert from "@mui/material/Alert";
 import { useTheme } from "@mui/material/styles";
@@ -21,60 +22,50 @@ import {
   ArrowBackIos,
   Download,
   Delete,
-  FolderOpenRounded,
   FilePresentRounded,
   FolderSpecialRounded,
-  ElectricBoltOutlined,
   AddRounded,
   Refresh,
   FileDownloadOutlined,
   CreateNewFolderRounded,
-  EditSquare,
-  PrecisionManufacturingOutlined,
-  TerminalOutlined,
+  EditRounded,
 } from "@mui/icons-material";
-import { getAuthorizedAxiosIntance } from "../../../utils/axiosConfig";
-import SubMenu from "./components/SubMenu";
+import { getAuthorizedAxiosIntance } from "../../../../utils/axiosConfig";
 
 const axiosInstance = await getAuthorizedAxiosIntance();
 //http://localhost:5000
 const API = "/api/files";
+const API_Project = "/api/projectManagement";
 
 const Alert = React.forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
-const headerParts = "MetDocument/";
-
-export default function MetDocument() {
+const FileSection = ({ headerParts, subHeaderParts }) => {
   const theme = useTheme();
-  const [headerParts, setHeaderParts] = useState("MetDocument/");
-
-  const toggleMenu = (menu) => {
-    if (headerParts !== menu) setHeaderParts(menu);
-    else setHeaderParts("");
-  };
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
-  const [folders, setFolders] = useState([]);
   const [selectedFolder, setSelectedFolder] = useState("");
   const [files, setFiles] = useState([]);
   const [newFolder, setNewFolder] = useState("");
   const [newFolderPassword, setNewFolderPassword] = useState("");
   const [uploadFile, setUploadFile] = useState(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deleteAction, setDeleteAction] = useState(() => {});
-  const [deletePassword, setDeletePassword] = useState("");
-  const [deleteTarget, setDeleteTarget] = useState({ type: "", name: "" });
   const [selectedFolderForPassword, setSelectedFolderForPassword] =
     useState("");
   const [accessPassword, setAccessPassword] = useState("");
   const [accessDialogOpen, setAccessDialogOpen] = useState(false);
 
   const [newFolderDialogOpen, setNewFolderDialogOpen] = useState(false);
-
+  const [newFolderDialogOpen6, setNewFolderDialogOpen6] = useState(false);
+  const [formData, setFormData] = useState({
+    id: "",
+    name: "",
+    email: "",
+    ccEmail: "",
+    project: [],
+  });
   const [toast, setToast] = useState({
     open: false,
     message: "",
@@ -84,57 +75,23 @@ export default function MetDocument() {
     type: "include",
     ids: new Set([]),
   });
-  const subItems = [
-    {
-      label: "Electric",
-      icon: <ElectricBoltOutlined />,
-      path: "/FATP/FATPMachineControl",
-    },
-    {
-      label: "Mechanical",
-      icon: <PrecisionManufacturingOutlined />,
-      path: "/FATP/GlueScrewStatus",
-    },
-    {
-      label: "Program",
-      icon: <TerminalOutlined />,
-      path: "/FATP/VCutMachineStatus",
-    },
-  ];
 
-  const menuItems = [
-    {
-      title: "MET Document",
-      headerParts: "MetDocument/",
-      subItems: subItems,
-    },
-    {
-      title: "Training Document",
-      headerParts: "TrainingDocument/",
-      subItems: subItems,
-    },
-  ];
+  const dataListProject = ["RFQ", "NPI Projects", "MP Projects", "EOL"];
 
   const showToast = (message, severity = "success") => {
     setToast({ open: true, message, severity });
   };
 
-  const fetchFolders = async () => {
-    try {
-      const res = await axiosInstance.get(`${API}/folders`);
-      setFolders(res.data);
-    } catch (err) {
-      showToast("Không thể tải danh sách folder", "error");
-    }
-  };
+  //   const fetchFolders = async () => {
+  //     try {
+  //       const res = await axiosInstance.get(`${API}/folders`);
+  //       setFolders(res.data);
+  //     } catch (err) {
+  //       showToast("Không thể tải danh sách folder", "error");
+  //     }
+  //   };
 
   const fetchFiles = async (folder, password = "", folderFile) => {
-    if (folderFile && folderFile.hasPassword) {
-      setAccessDialogOpen(true);
-      setSelectedFolderForPassword(folder);
-      return;
-    }
-    if (!folder) return;
     try {
       const res = await axiosInstance.get(`${API}/files`, {
         params: { folder: `${headerParts}${folder}`, password },
@@ -168,7 +125,9 @@ export default function MetDocument() {
       setNewFolder("");
       setNewFolderPassword("");
       setNewFolderDialogOpen(false);
-      fetchFolders();
+      if (selectedFolder.replace("/", "").split("/").length === 1)
+        await addNewProject(newFolder);
+      //   fetchFolders();
       await fetchFiles(selectedFolder, accessPassword);
     } catch (err) {
       showToast(err.response?.data?.message || "❌ Lỗi tạo folder", "error");
@@ -212,21 +171,11 @@ export default function MetDocument() {
   };
 
   const confirmDelete = (type, name, action) => {
-    if (type === "folder") {
-      const confirm = window.confirm(
-        `Bạn có chắc muốn xóa Folder "${name}" không`
-      );
-      if (!confirm) return;
-    }
-    const folder = type === "folder" ? name : selectedFolder;
-    const hasPassword = folders.find((f) => f.name === folder)?.hasPassword;
-    setDeleteTarget({ type, name });
-    setDeleteAction(() => action);
-    if (hasPassword) {
-      setDeleteDialogOpen(true);
-    } else {
-      action("");
-    }
+    const confirm = window.confirm(
+      `Bạn có chắc muốn xóa Folder "${name}" không`
+    );
+    if (!confirm) return;
+    action("");
   };
 
   const handleDeleteFile = (filename) => {
@@ -261,20 +210,6 @@ export default function MetDocument() {
     );
   };
 
-  const handleConfirmDelete = async () => {
-    try {
-      await deleteAction(deletePassword);
-      setDeleteDialogOpen(false);
-      setDeletePassword("");
-    } catch (err) {
-      showToast(err.response?.data?.message || "❌ Lỗi xóa", "error");
-    }
-  };
-
-  const handleAccessFolder = async () => {
-    await fetchFiles(selectedFolderForPassword, accessPassword);
-  };
-
   const backFolder = async () => {
     const normalized = (selectedFolder || "")
       .replace(/\\/g, "/") // hỗ trợ cả \ của Windows
@@ -301,9 +236,32 @@ export default function MetDocument() {
     await fetchFiles(folder, accessPassword);
   };
 
+  const addNewProject = async (project) => {
+    //add item
+    try {
+      const dataToSend = {
+        project: project,
+      };
+
+      const reponse = await axiosInstance.post(
+        `${API_Project}/addNewProject`,
+        dataToSend
+      );
+      if (reponse.data.success) {
+        showToast(reponse.data.message);
+      } else {
+        showToast("Thêm project vào database thất bại", "error");
+      }
+    } catch (error) {
+      console.error("Lỗi khi lưu project vào database:", error);
+      showToast("Lỗi khi kết nối server", "error");
+    }
+  };
+
   useEffect(() => {
-    fetchFolders();
-  }, []);
+    console.log("headerParts", headerParts);
+    if (subHeaderParts) fetchFiles(subHeaderParts);
+  }, [subHeaderParts]);
 
   const columns = [
     {
@@ -390,7 +348,7 @@ export default function MetDocument() {
               gap: 0.5,
             }}
           >
-            {row.isFolder == false && (
+            {row.isFolder === false && (
               <Button
                 title="Download"
                 onClick={() => handleDownload(row.name)}
@@ -398,6 +356,16 @@ export default function MetDocument() {
                 size="small"
               >
                 <Download sx={{ fontSize: "1rem" }}></Download>
+              </Button>
+            )}
+            {selectedFolder.split("/").length === 1 && (
+              <Button
+                title="Edit"
+                onClick={() => openDialogEditEmailConfig(row)}
+                sx={{ minWidth: "unset", backgroundColor: "#9994" }}
+                size="small"
+              >
+                <EditRounded sx={{ fontSize: "1rem" }}></EditRounded>
               </Button>
             )}
             <Button
@@ -428,41 +396,54 @@ export default function MetDocument() {
     fileInputRef.current?.click();
   };
 
-  return (
-    <Box p={3} sx={{ display: "flex", height: "90vh", gap: 2 }}>
-      {/* Sidebar */}
-      <Paper
-        sx={{
-          width: 300,
-          p: 2,
-          overflowY: "auto",
-          height: "100%",
-          background: theme.palette.background.component,
-          boxShadow: 4,
-          position: "relative",
-          "&::-webkit-scrollbar": { width: 6, opacity: 0 },
-          "&:hover::-webkit-scrollbar": { width: 6, opacity: 1 },
-          "&::-webkit-scrollbar-thumb": {
-            backgroundColor: "#cdcdcd8c",
-            borderRadius: "10px",
-          },
-        }}
-      >
-        {menuItems.map((item) => (
-          <SubMenu
-            key={item.headerParts}
-            // isMini={isMini}
-            open={headerParts === item.headerParts}
-            onToggle={() => toggleMenu(item.headerParts)}
-            icon={<FolderOpenRounded />}
-            title={item.title}
-            subItems={subItems}
-            //selectedItem={selectedItem} // Truyền trạng thái selectedItem vào SubMenu
-            onSelectItem={fetchFiles} // Hàm chọn mục vào SubMenu
-          />
-        ))}
-      </Paper>
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
+  const onSave = () => {
+    // Thêm logic kiểm tra dữ liệu hợp lệ tại đây (ví dụ: line và type không được trống)
+    if (!formData.name) {
+      alert("Vui lòng điền Name");
+      return;
+    }
+    handleEdit();
+  };
+
+  const handleEdit = async () => {
+    //add item
+    try {
+      const reponse = await axiosInstance.post(
+        `${API_Project}/editProject`,
+        formData
+      );
+      if (reponse.data.success) {
+        showToast(reponse.data.message);
+        fetchFiles(selectedFolder, "");
+        setNewFolderDialogOpen6(false);
+      } else {
+        showToast("Edit fail", "error");
+      }
+    } catch (error) {
+      console.error("Lỗi khi lưu:", error);
+      showToast("Lỗi khi kết nối server", "error");
+    }
+  };
+
+  const openDialogEditEmailConfig = (item) => {
+    const status = selectedFolder;
+    setFormData({
+      oldName: item.name,
+      name: item.name,
+      status: status.replace("/", ""),
+      oldStatus: status.replace("/", ""),
+      headerParts: headerParts,
+    });
+    setNewFolderDialogOpen6(true);
+  };
+
+  return (
+    <>
       {/* File section */}
       <Box
         flex={1}
@@ -633,7 +614,8 @@ export default function MetDocument() {
                   alignItems: "center", // ensure top alignment when multi-line
                 },
               }}
-              onRowClick={(params) => {
+              onCellClick={(params) => {
+                if (params.field !== "name") return;
                 if (params.row.isFolder) {
                   goToFolder(`${selectedFolder}/${params.row.name}`); // bạn tự implement
                 }
@@ -647,55 +629,51 @@ export default function MetDocument() {
         }
       </Box>
 
-      {/* Delete confirmation dialog */}
       <Dialog
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
+        open={newFolderDialogOpen6}
+        onClose={() => setNewFolderDialogOpen6(false)}
       >
-        <DialogTitle>
-          Xác nhận xóa {deleteTarget.type === "folder" ? "folder" : "file"} "
-          {deleteTarget.name}"
-        </DialogTitle>
-        <DialogContent sx={{ paddingTop: "8px !important" }}>
-          <TextField
-            label="Mật khẩu"
-            type="password"
-            fullWidth
-            value={deletePassword}
-            onChange={(e) => setDeletePassword(e.target.value)}
-            autoFocus
-          />
+        <DialogTitle>{formData.id ? "Edit" : "Add new"} Email</DialogTitle>
+        <DialogContent sx={{ paddingTop: "8px !important", minWidth: "350px" }}>
+          <Grid container spacing={3}>
+            <Grid item size={{ xs: 12 }} xs={12}>
+              <TextField
+                label="Name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                fullWidth
+              />
+            </Grid>
+            <Grid item size={{ xs: 12, sm: 12 }} xs={12} sm={12}>
+              <TextField
+                select
+                label="Status"
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                fullWidth
+                required
+              >
+                {dataListProject.map((option) => (
+                  <MenuItem key={option} value={option}>
+                    {option}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+          </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Hủy</Button>
-          <Button variant="contained" onClick={handleConfirmDelete}>
-            Xác nhận
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => setNewFolderDialogOpen6(false)}
+          >
+            Exit
           </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Folder access dialog */}
-      <Dialog
-        open={accessDialogOpen}
-        onClose={() => setAccessDialogOpen(false)}
-      >
-        <DialogTitle>
-          Nhập mật khẩu cho folder "{selectedFolderForPassword}"
-        </DialogTitle>
-        <DialogContent sx={{ paddingTop: "8px !important" }}>
-          <TextField
-            label="Mật khẩu"
-            type="password"
-            fullWidth
-            value={accessPassword}
-            onChange={(e) => setAccessPassword(e.target.value)}
-            autoFocus
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setAccessDialogOpen(false)}>Hủy</Button>
-          <Button variant="contained" onClick={handleAccessFolder}>
-            Xác nhận
+          <Button variant="contained" onClick={onSave}>
+            Edit project
           </Button>
         </DialogActions>
       </Dialog>
@@ -736,9 +714,11 @@ export default function MetDocument() {
           {toast.message}
         </Alert>
       </Snackbar>
-    </Box>
+    </>
   );
-}
+};
+
+export default FileSection;
 
 function ToolbarBtn({ icon, label, onClick, disabled, input }) {
   return (
