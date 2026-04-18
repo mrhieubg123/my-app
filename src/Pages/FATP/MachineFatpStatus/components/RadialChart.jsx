@@ -21,14 +21,14 @@ const RadialChart = ({ title = "", dataFATPErrorDetail = [], color = [], idata =
   const totalOK =
     idata.length > 0
       ? idata
-          .filter((item) => item.STATUS === "OK")
-          .reduce((sum, item) => sum + item.TOTALTIME, 0)
+        .filter((item) => item.STATUS === "OK")
+        .reduce((sum, item) => sum + item.TOTALTIME, 0)
       : 0;
   const totalNG =
     idata.length > 0
       ? idata
-          .filter((item) => item.STATUS === "NG")
-          .reduce((sum, item) => sum + item.TOTALTIME, 0)
+        .filter((item) => item.STATUS === "NG")
+        .reduce((sum, item) => sum + item.TOTALTIME, 0)
       : 0;
 
   const total = totalOK * 1 + totalNG * 1;
@@ -54,23 +54,38 @@ const RadialChart = ({ title = "", dataFATPErrorDetail = [], color = [], idata =
   }, []);
   const radiusConfig = React.useMemo(
     () => [
-      { outer: "100%", inner: "88%" },
-      { outer: "85%", inner: "73%" },
-      { outer: "70%", inner: "58%" },
-      { outer: "55%", inner: "43%" },
-      { outer: "40%", inner: "28%" },
-      { outer: "25%", inner: "13%" },
+      { outer: "100%", inner: "83%" },
+      { outer: "78%", inner: "61%" },
+      { outer: "56%", inner: "39%" },
+      { outer: "34%", inner: "17%" },
+      { outer: "0%", inner: "0%" },
+      { outer: "0%", inner: "0%" },
     ],
     []
   );
+
   const colorConfig = [
-    "#2099f5",
-    "#ff3110",
+    {
+      linearGradient: { x1: 0, y1: 0, x2: 1, y2: 1 },
+      stops: [
+        [0, "#00c6ff"],
+        [1, "#0072ff"],
+      ],
+    }, // Electric Blue
+    {
+      linearGradient: { x1: 0, y1: 0, x2: 1, y2: 1 },
+      stops: [
+        [0, "#ff0844"],
+        [1, "#ffb199"],
+      ],
+    }, // Fiery Red
     "#219af5",
     "#ff5733",
     "#33ff57",
     "#3357ff",
   ];
+
+  const seriesColorsFallback = ["#00c6ff", "#ff0844", "#219af5", "#ff5733"];
 
   const seriesData = [
     {
@@ -85,6 +100,7 @@ const RadialChart = ({ title = "", dataFATPErrorDetail = [], color = [], idata =
 
   const series = seriesData.map((item, index) => ({
     name: item.name,
+    fallbackColor: seriesColorsFallback[index],
     data: [
       {
         color: colorConfig[index],
@@ -100,7 +116,7 @@ const RadialChart = ({ title = "", dataFATPErrorDetail = [], color = [], idata =
     chart: {
       type: "solidgauge",
       animation: {
-        duration: 1000,
+        duration: 1200,
       },
       backgroundColor: "transparent",
       reflow: true,
@@ -109,7 +125,9 @@ const RadialChart = ({ title = "", dataFATPErrorDetail = [], color = [], idata =
     title: {
       text: title,
       style: {
-        fontSize: "15px",
+        fontSize: "16px",
+        fontWeight: "bold",
+        color: theme.palette.chart.color,
       },
     },
     pane: {
@@ -118,9 +136,8 @@ const RadialChart = ({ title = "", dataFATPErrorDetail = [], color = [], idata =
       background: seriesData.map((radius, index) => ({
         outerRadius: radiusConfig[index].outer,
         innerRadius: radiusConfig[index].inner,
-        backgroundColor: "#99999930",
+        backgroundColor: "rgba(150, 150, 150, 0.15)",
         borderWidth: 0,
-        borderColor: "#ccc",
       })),
     },
     yAxis: {
@@ -131,20 +148,19 @@ const RadialChart = ({ title = "", dataFATPErrorDetail = [], color = [], idata =
     },
     plotOptions: {
       solidgauge: {
-        linecap: "round", // Bo tròn đầu thanh
+        linecap: "round", // Bo tròn đầu thanh hiện đại
         dataLabels: {
           enabled: true,
           useHTML: true,
           borderWidth: 0,
           align: "center",
           verticalAlign: "middle",
-          format: `<div style="text-align:center; border: unset">
-                      <span style="font-size:12px; font-weight:bold; color:{point.color}; textShadow:none;">{series.name}</span>
-                      </br>
-                      <span style="font-size:12px; color: ${theme.palette.chart.color}; textShadow:none;">{y}%</span>
+          format: `<div style="text-align:center; border: unset; display: flex; flex-direction: column; gap: 4px;">
+                      <span style="font-size:13px; font-weight:800; color:{series.userOptions.fallbackColor}; text-shadow: 0px 1px 2px rgba(0,0,0,0.2);">{series.name}</span>
+                      <span style="font-size:16px; font-weight:bold; color: ${theme.palette.chart.color}; text-shadow:none;">{y}%</span>
                   </div>`,
           style: {
-            fontSize: "12px",
+            fontSize: "13px",
             border: "none",
             background: "none",
           },
@@ -164,10 +180,9 @@ const RadialChart = ({ title = "", dataFATPErrorDetail = [], color = [], idata =
                   series: [
                     {
                       dataLabels: {
-                        format: `<div style="text-align:center; border: unset">
-                                  <span style="font-size:12px; font-weight:bold; color:${point.color}; textShadow:none;">${point.series.name}</span>
-                                  </br>
-                                  <span style="font-size:12px; color: ${theme.palette.chart.color}; textShadow:none;">${point.y}%</span>
+                        format: `<div style="text-align:center; border: unset; display: flex; flex-direction: column; gap: 4px;">
+                                  <span style="font-size:13px; font-weight:800; color:${point.series.userOptions.fallbackColor}; text-shadow: 0px 1px 2px rgba(0,0,0,0.2);">${point.series.name}</span>
+                                  <span style="font-size:16px; font-weight:bold; color: ${theme.palette.chart.color}; text-shadow:none;">${point.y}%</span>
                               </div>`,
                         useHTML: true,
                       },
@@ -186,10 +201,9 @@ const RadialChart = ({ title = "", dataFATPErrorDetail = [], color = [], idata =
                   series: [
                     {
                       dataLabels: {
-                        format: `<div style="text-align:center; border: unset">
-                                  <span style="font-size:12px; font-weight:bold; color:${point.color}; textShadow:none;">${point.series.name}</span>
-                                  </br>
-                                  <span style="font-size:12px; color: ${theme.palette.chart.color}; textShadow:none;">${point.y}%</span>
+                        format: `<div style="text-align:center; border: unset; display: flex; flex-direction: column; gap: 4px;">
+                                  <span style="font-size:13px; font-weight:800; color:${point.series.userOptions.fallbackColor}; text-shadow: 0px 1px 2px rgba(0,0,0,0.2);">${point.series.name}</span>
+                                  <span style="font-size:16px; font-weight:bold; color: ${theme.palette.chart.color}; text-shadow:none;">${point.y}%</span>
                               </div>`,
                         useHTML: true,
                       },
@@ -210,7 +224,7 @@ const RadialChart = ({ title = "", dataFATPErrorDetail = [], color = [], idata =
           },
           hover: {
             enabled: true,
-            brightness: 0.5,
+            brightness: 0.1,
           },
         },
       },

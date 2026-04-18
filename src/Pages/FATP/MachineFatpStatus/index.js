@@ -308,34 +308,34 @@ const FATPMachine = () => {
     const tempError = {};
     switchErAnLo
       ? dataFATPMachineAnalysis
-          .filter((item) => item.STATUS === "NG")
-          .forEach((item) => {
-            if (tempError[item.ERROR]) {
-              tempError[item.ERROR].Downtime += (item.TOTALTIME * 1) / 3600;
-              tempError[item.ERROR].Frequency += item.FREN * 1;
-            } else {
-              tempError[item.ERROR] = {
-                Series: item.ERROR,
-                Downtime: (item.TOTALTIME * 1) / 3600,
-                Frequency: item.FREN * 1,
-              };
-            }
-          })
+        .filter((item) => item.STATUS === "NG")
+        .forEach((item) => {
+          if (tempError[item.ERROR]) {
+            tempError[item.ERROR].Downtime += (item.TOTALTIME * 1) / 3600;
+            tempError[item.ERROR].Frequency += item.FREN * 1;
+          } else {
+            tempError[item.ERROR] = {
+              Series: item.ERROR,
+              Downtime: (item.TOTALTIME * 1) / 3600,
+              Frequency: item.FREN * 1,
+            };
+          }
+        })
       : dataFATPMachineAnalysis
-          .filter((item) => item.STATUS === "NG")
-          .forEach((item) => {
-            if (tempError[item.ERROR_CODE]) {
-              tempError[item.ERROR_CODE].Downtime +=
-                (item.TOTALTIME * 1) / 3600;
-              tempError[item.ERROR_CODE].Frequency += item.FREN * 1;
-            } else {
-              tempError[item.ERROR_CODE] = {
-                Series: item.ERROR_CODE,
-                Downtime: (item.TOTALTIME * 1) / 3600,
-                Frequency: item.FREN * 1,
-              };
-            }
-          });
+        .filter((item) => item.STATUS === "NG")
+        .forEach((item) => {
+          if (tempError[item.ERROR_CODE]) {
+            tempError[item.ERROR_CODE].Downtime +=
+              (item.TOTALTIME * 1) / 3600;
+            tempError[item.ERROR_CODE].Frequency += item.FREN * 1;
+          } else {
+            tempError[item.ERROR_CODE] = {
+              Series: item.ERROR_CODE,
+              Downtime: (item.TOTALTIME * 1) / 3600,
+              Frequency: item.FREN * 1,
+            };
+          }
+        });
 
     const List2 = Object.values(tempError);
     List2.sort((a, b) => b.Downtime - a.Downtime);
@@ -354,34 +354,34 @@ const FATPMachine = () => {
     const tempError2 = {};
     switchLiAnMa
       ? dataFATPMachineAnalysis
-          .filter((item) => item.STATUS === "NG")
-          .forEach((item) => {
-            if (tempError2[item.LINE]) {
-              tempError2[item.LINE].Downtime += (item.TOTALTIME * 1) / 3600;
-              tempError2[item.LINE].Frequency += item.FREN * 1;
-            } else {
-              tempError2[item.LINE] = {
-                Series: item.LINE,
-                Downtime: (item.TOTALTIME * 1) / 3600,
-                Frequency: item.FREN * 1,
-              };
-            }
-          })
+        .filter((item) => item.STATUS === "NG")
+        .forEach((item) => {
+          if (tempError2[item.LINE]) {
+            tempError2[item.LINE].Downtime += (item.TOTALTIME * 1) / 3600;
+            tempError2[item.LINE].Frequency += item.FREN * 1;
+          } else {
+            tempError2[item.LINE] = {
+              Series: item.LINE,
+              Downtime: (item.TOTALTIME * 1) / 3600,
+              Frequency: item.FREN * 1,
+            };
+          }
+        })
       : dataFATPMachineAnalysis
-          .filter((item) => item.STATUS === "NG")
-          .forEach((item) => {
-            if (tempError2[item.MACHINE_NAME]) {
-              tempError2[item.MACHINE_NAME].Downtime +=
-                (item.TOTALTIME * 1) / 3600;
-              tempError2[item.MACHINE_NAME].Frequency += item.FREN * 1;
-            } else {
-              tempError2[item.MACHINE_NAME] = {
-                Series: item.MACHINE_NAME,
-                Downtime: (item.TOTALTIME * 1) / 3600,
-                Frequency: item.FREN * 1,
-              };
-            }
-          });
+        .filter((item) => item.STATUS === "NG")
+        .forEach((item) => {
+          if (tempError2[item.MACHINE_NAME]) {
+            tempError2[item.MACHINE_NAME].Downtime +=
+              (item.TOTALTIME * 1) / 3600;
+            tempError2[item.MACHINE_NAME].Frequency += item.FREN * 1;
+          } else {
+            tempError2[item.MACHINE_NAME] = {
+              Series: item.MACHINE_NAME,
+              Downtime: (item.TOTALTIME * 1) / 3600,
+              Frequency: item.FREN * 1,
+            };
+          }
+        });
     const List3 = Object.values(tempError2);
     List3.sort((a, b) => b.Downtime - a.Downtime);
 
@@ -437,47 +437,6 @@ const FATPMachine = () => {
     setDataFATPErrorDetailFilter(dataFilter);
     // fetchFATPErrorDetail(newModel);
   };
-
-  // const createNewFile = async () => {
-  //     if (!uploadFile) return;
-  //     const form = new FormData();
-  //     form.append('file', uploadFile);
-  //     form.append('formData', JSON.stringify(formData));
-  //     console.log(formData)
-  //     try{
-  //         setIsUploading(true);
-  //         setUploadProgress(0);
-  //         await axiosInstance.post(`api/files/uploadFileLCR`, form, {
-  //             headers:{
-  //                 'Content-Type': 'multipart/form-data',
-  //             },
-  //             onUploadProgress: (event) => {
-  //             const percent = Math.round((event.loaded * 100) / event.total);
-  //             setUploadProgress(percent);
-  //             }
-  //         });
-  //         // await axiosInstance.post(`/api/files/uploadFileLCR`,{formData, uploadFile});
-  //         showNotification('Upload Thành công !', "success");
-  //         fetchListFileSampleLCR();
-  //         fetchListFileLCRWaitConfirm()
-  //         setFormData({
-  //             line:"",
-  //             model:"",
-  //             idConfirm: user.username,
-  //             DateTime:'',
-  //             typeFile:'Sample',
-  //             department: user.department,
-  //         });
-  //         setUploadFile(null)
-  //         setNewFolderDialogOpen(false);
-
-  //     }
-  //     catch (err) {
-  //         // showNotification(err.response?.data?.message || '❌ Upload thất bại !', "error");
-  //     } finally {
-  //         setIsUploading(false);
-  //     }
-  //   };
 
   const TotalStatus = (data) => {
     const counts = {
@@ -620,7 +579,7 @@ const FATPMachine = () => {
             md={2.4}
             xs={2.4}
             height="12vh"
-            bgColor={"linear-gradient(45deg,#4099ff,#73b4ff)"}
+            bgColor={"linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)"}
             header="Total"
           >
             {countStatus.TOTAL}
@@ -630,7 +589,7 @@ const FATPMachine = () => {
             md={2.4}
             xs={2.4}
             height="12vh"
-            bgColor={"linear-gradient(45deg,#2ed8b6,#59e0c5)"}
+            bgColor={"linear-gradient(135deg, #11998e 0%, #38ef7d 100%)"}
             header="Run"
           >
             {countStatus.RUN}
@@ -640,7 +599,7 @@ const FATPMachine = () => {
             md={2.4}
             xs={2.4}
             height="12vh"
-            bgColor={"linear-gradient(45deg,#ff5370,#ff869a)"}
+            bgColor={"linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%)"}
             header="Error"
           >
             {countStatus.ERROR}
@@ -650,7 +609,7 @@ const FATPMachine = () => {
             md={2.4}
             xs={2.4}
             height="12vh"
-            bgColor={"linear-gradient(45deg,#ffb640,#ffcb80)"}
+            bgColor={"linear-gradient(135deg, #f09819 0%, #edde5d 100%)"}
             header="Stop"
           >
             {countStatus.STOP}
@@ -660,7 +619,7 @@ const FATPMachine = () => {
             md={2.4}
             xs={2.4}
             height="12vh"
-            bgColor={"linear-gradient(45deg,#808080,#bfb8b8)"}
+            bgColor={"linear-gradient(135deg, #606c88 0%, #3f4c6b 100%)"}
             header="Off"
           >
             {countStatus.OFF}

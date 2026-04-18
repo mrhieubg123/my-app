@@ -75,9 +75,22 @@ const HiModal = ({
     }
 
   return (
-
-    <Slide direction={`${whereMove}`} in={open} mountOnEnter unmountOnExit style={{ zIndex: 1200 }}>
-            <Box
+    <>
+      {open && (
+        <Box
+          onClick={onClose}
+          sx={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            zIndex: 1199,
+          }}
+        />
+      )}
+      <Slide direction={`${whereMove}`} in={open} mountOnEnter unmountOnExit style={{ zIndex: 1200 }}>
+        <Box
             sx={{
                 width: `${reSize}%`,
                 position: 'fixed',
@@ -195,9 +208,7 @@ const HiModal = ({
                 
             </Box>
     </Slide>
-
-
-    
+    </>
   );
 };
 

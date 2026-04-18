@@ -332,6 +332,16 @@ const SidebarContent = ({ isMini, selectedItem, setSelectedItem }) => {
           icon: <LensOutlinedIcon />,
           path: "/FATP/MetDocument",
         },
+        {
+          label: "Aoi Picture",
+          icon: <LensOutlinedIcon />,
+          path: "/FATP/AoiPicture",
+        },
+        {
+          label: "Automation Error Command",
+          icon: <LensOutlinedIcon />,
+          path: "/FATP/FailureAnalysis",
+        },
       ],
     },
     {
@@ -344,7 +354,7 @@ const SidebarContent = ({ isMini, selectedItem, setSelectedItem }) => {
           icon: <LensOutlinedIcon />,
           path: "/FATP/ProjectManagement",
         },
-         {
+        {
           label: "Yield Rate",
           icon: <LensOutlinedIcon />,
           path: "/FATP/YieldRatePTH",

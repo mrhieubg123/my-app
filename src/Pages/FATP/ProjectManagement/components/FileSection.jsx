@@ -15,6 +15,7 @@ import {
   Tooltip,
   Grid,
   MenuItem,
+  Chip,
 } from "@mui/material";
 import MuiAlert from "@mui/material/Alert";
 import { useTheme } from "@mui/material/styles";
@@ -49,11 +50,10 @@ const FileSection = ({ headerParts, subHeaderParts }) => {
 
   const [selectedFolder, setSelectedFolder] = useState("");
   const [files, setFiles] = useState([]);
+  const [listProjects, setListProjects] = useState([]);
   const [newFolder, setNewFolder] = useState("");
   const [newFolderPassword, setNewFolderPassword] = useState("");
   const [uploadFile, setUploadFile] = useState(null);
-  const [selectedFolderForPassword, setSelectedFolderForPassword] =
-    useState("");
   const [accessPassword, setAccessPassword] = useState("");
   const [accessDialogOpen, setAccessDialogOpen] = useState(false);
 
@@ -105,7 +105,7 @@ const FileSection = ({ headerParts, subHeaderParts }) => {
     } catch (err) {
       if (err.response?.status === 403) {
         setAccessDialogOpen(true);
-        setSelectedFolderForPassword(folder);
+        // setSelectedFolderForPassword(folder);
         // showToast('Mật khẩu folder không đúng', 'error'); // Show error toast
         // throw new Error('Wrong password')
       } else {
@@ -125,8 +125,10 @@ const FileSection = ({ headerParts, subHeaderParts }) => {
       setNewFolder("");
       setNewFolderPassword("");
       setNewFolderDialogOpen(false);
-      if (selectedFolder.replace("/", "").split("/").length === 1)
+      if (selectedFolder.replace("/", "").split("/").length === 1) {
         await addNewProject(newFolder);
+        await fetchListProject(subHeaderParts);
+      }
       //   fetchFolders();
       await fetchFiles(selectedFolder, accessPassword);
     } catch (err) {
@@ -172,7 +174,7 @@ const FileSection = ({ headerParts, subHeaderParts }) => {
 
   const confirmDelete = (type, name, action) => {
     const confirm = window.confirm(
-      `Bạn có chắc muốn xóa Folder "${name}" không`
+      `Bạn có chắc muốn xóa Folder "${name}" không`,
     );
     if (!confirm) return;
     action("");
@@ -206,9 +208,11 @@ const FileSection = ({ headerParts, subHeaderParts }) => {
       `${baseURL}${API}/download/${
         headerParts + selectedFolder
       }/${filename}?password=${encodeURIComponent(accessPassword)}`,
-      "_blank"
+      "_blank",
     );
   };
+
+  console.log("selectedFolder", selectedFolder);
 
   const backFolder = async () => {
     const normalized = (selectedFolder || "")
@@ -241,11 +245,12 @@ const FileSection = ({ headerParts, subHeaderParts }) => {
     try {
       const dataToSend = {
         project: project,
+        status: subHeaderParts,
       };
 
       const reponse = await axiosInstance.post(
         `${API_Project}/addNewProject`,
-        dataToSend
+        dataToSend,
       );
       if (reponse.data.success) {
         showToast(reponse.data.message);
@@ -258,9 +263,23 @@ const FileSection = ({ headerParts, subHeaderParts }) => {
     }
   };
 
+  const fetchListProject = async (subHeaderParts) => {
+    try {
+      const res = await axiosInstance.post(
+        `${API_Project}/getListProjectManagementByStatus`,
+        {
+          status: subHeaderParts,
+        },
+      );
+      setListProjects(res.data || []);
+    } catch (err) {
+      showToast("Không thể tải danh sách file", err);
+    }
+  };
+
   useEffect(() => {
-    console.log("headerParts", headerParts);
     if (subHeaderParts) fetchFiles(subHeaderParts);
+    fetchListProject(subHeaderParts);
   }, [subHeaderParts]);
 
   const columns = [
@@ -283,7 +302,7 @@ const FileSection = ({ headerParts, subHeaderParts }) => {
     {
       field: "isFolder",
       headerName: "Attachment",
-      flex: 1, // tự chia chiều rộng
+      flex: 0.5, // tự chia chiều rộng
       minWidth: 100,
       headerAlign: "center",
       align: "center",
@@ -307,16 +326,57 @@ const FileSection = ({ headerParts, subHeaderParts }) => {
     },
     {
       field: "size",
-      headerName: "Size",
+      headerName: selectedFolder === subHeaderParts ? "Status" : "Size",
       flex: 1, // tự chia chiều rộng
       minWidth: 100,
       headerAlign: "center",
       align: "center",
-      renderCell: (params) => (
-        <div style={{ whiteSpace: "normal", wordWrap: "break-word" }}>
-          {params.row.isFolder ? "" : formatBytes(params.value) || ""}
-        </div>
-      ),
+      renderCell: (params) => {
+        if (selectedFolder === subHeaderParts) {
+          const project = listProjects.find(
+            (item) => item.PROJECT === params.row.name,
+          );
+
+          if (!project) return null;
+
+          let status = "On Going";
+          let bgColor = "warning"; // vàng mặc định
+
+          // 1️⃣ Nếu đã close
+          if (project.END_TIME !== null) {
+            status = "Success";
+            bgColor = "success"; // xanh
+          } else {
+            // 2️⃣ Nếu chưa close → check quá 15 ngày chưa
+            const createdDate = new Date(project.CREATED_AT);
+            const now = new Date();
+
+            const diffDays = (now - createdDate) / (1000 * 60 * 60 * 24);
+
+            if (diffDays > 15) {
+              status = "Over Time";
+              bgColor = "error"; // đỏ
+            }
+          }
+
+          return (
+            <Chip
+              label={status}
+              color={bgColor}
+              size="small"
+              sx={{
+                fontWeight: 600,
+                minWidth: 100,
+              }}
+            />
+          );
+        }
+        return (
+          <div style={{ whiteSpace: "normal", wordWrap: "break-word" }}>
+            {params.row.isFolder ? "" : formatBytes(params.value) || ""}
+          </div>
+        );
+      },
     },
     {
       field: "createAt",
@@ -358,7 +418,7 @@ const FileSection = ({ headerParts, subHeaderParts }) => {
                 <Download sx={{ fontSize: "1rem" }}></Download>
               </Button>
             )}
-            {selectedFolder.split("/").length === 1 && (
+            {/* {selectedFolder.split("/").length === 1 && (
               <Button
                 title="Edit"
                 onClick={() => openDialogEditEmailConfig(row)}
@@ -367,7 +427,7 @@ const FileSection = ({ headerParts, subHeaderParts }) => {
               >
                 <EditRounded sx={{ fontSize: "1rem" }}></EditRounded>
               </Button>
-            )}
+            )} */}
             <Button
               title="Delete"
               onClick={() => handleDeleteFile(row.name)}
@@ -415,7 +475,7 @@ const FileSection = ({ headerParts, subHeaderParts }) => {
     try {
       const reponse = await axiosInstance.post(
         `${API_Project}/editProject`,
-        formData
+        formData,
       );
       if (reponse.data.success) {
         showToast(reponse.data.message);

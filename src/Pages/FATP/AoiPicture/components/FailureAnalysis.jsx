@@ -85,7 +85,7 @@ const HiProgressBar = ({
 
   const displayItems = useMemo(() => {
     if (DataSeries.length <= visibleCount) return DataSeries;
-    return DataSeries;
+
     return DataSeries.slice(current, current + visibleCount).concat(
       DataSeries.slice(
         0,
@@ -94,10 +94,6 @@ const HiProgressBar = ({
     );
   }, [DataSeries, current, visibleCount]);
 
-  const maxFrequency =
-    DataSeries.length > 0
-      ? Math.max(...displayItems.map((e) => e.Frequency), 0)
-      : 1;
   const maxDowntime =
     DataSeries.length > 0
       ? Math.max(...displayItems.map((e) => e.Downtime), 0)
@@ -106,7 +102,7 @@ const HiProgressBar = ({
   const handleChangeErrorDetail = (nol) => {
     setShowModal1((prev) => !prev);
     setDataFATPErrorDetail(idata.filter((item) => item[keyFilter] === nol));
-    console.log("setDataFATPErrorDetail", dataFATPErrorDetail, nol, keyFilter)
+    console.log("setDataFATPErrorDetail", dataFATPErrorDetail, nol, keyFilter);
   };
 
   return DataSeries.length > 0 ? (
@@ -137,57 +133,7 @@ const HiProgressBar = ({
           >
             <Box
               className="SlideProgress"
-              sx={{ width: "40%", textAlign: "left", pl: 0.5 }}
-            >
-              <Typography
-                sx={{
-                  fontSize: "12px",
-                  whiteSpace: "nowrap",
-                  bottom: 0,
-                  color: "#ffffff00 !important",
-                  marginBottom: "0",
-                }}
-                variant="body2"
-                color="textSecondary"
-                gutterBottom
-              >
-                .
-              </Typography>
-              <ProgressContainer>
-                <StyledLinearProgress
-                  variant="determinate"
-                  value={
-                    error.Frequency > 0
-                      ? (error.Frequency * 100) / maxFrequency
-                      : 0
-                  }
-                  sx={{
-                    transform: "rotateY(180deg)",
-                    "& .MuiLinearProgress-bar": { background: Colors[0] },
-                  }}
-                />
-                <ProgressText
-                  sx={{
-                    right: `calc(${error.Frequency > 0
-                      ? (error.Frequency * 100) / maxFrequency
-                      : 0
-                      }% + 1px)`, // Điều chỉnh vị trí giá trị để căn giữa thanh
-                    width: "auto",
-                    whiteSpace: "nowrap",
-                    textAlign: "center",
-                    color: theme.palette.primary.conponent,
-                    fontSize: "12px",
-                  }}
-                  variant="body2"
-                >
-                  {`${error.Frequency}`}
-                </ProgressText>
-              </ProgressContainer>
-            </Box>
-
-            <Box
-              className="SlideProgress"
-              sx={{ width: "60%", textAlign: "left", pl: 0.5 }}
+              sx={{ width: "90%", textAlign: "left", pl: 0.5 }}
             >
               <Typography
                 className="headerSlideProgress"
@@ -211,14 +157,15 @@ const HiProgressBar = ({
                       ? (error.Downtime * 100) / maxDowntime
                       : 0
                   }
-                  sx={{ "& .MuiLinearProgress-bar": { background: Colors[1] } }}
+                  sx={{ "& .MuiLinearProgress-bar": { background: Colors[0] } }}
                 />
                 <ProgressText
                   sx={{
-                    left: `calc(${error.Downtime > 0
-                      ? (error.Downtime * 100) / maxDowntime
-                      : 0
-                      }% + 1px)`, // Điều chỉnh vị trí giá trị để căn giữa thanh
+                    left: `calc(${
+                      error.Downtime > 0
+                        ? (error.Downtime * 100) / maxDowntime
+                        : 0
+                    }% + 1px)`, // Điều chỉnh vị trí giá trị để căn giữa thanh
                     width: "auto",
                     minWidth: "30px",
                     whiteSpace: "nowrap",
@@ -229,7 +176,7 @@ const HiProgressBar = ({
                   }}
                   variant="body2"
                 >
-                  {(error.Downtime * 1).toFixed(2)}
+                  {error.Downtime}
                 </ProgressText>
               </ProgressContainer>
             </Box>
@@ -253,4 +200,4 @@ const HiProgressBar = ({
   );
 };
 
-export default React.memo(HiProgressBar);
+export default HiProgressBar;

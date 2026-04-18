@@ -12,6 +12,7 @@ import {
 import SubMenu from "./components/SubMenu";
 import FileSection from "./components/FileSection";
 import EmailConfig from "./components/EmailConfig";
+import ProjectTracking from "./components/ProjectTracking";
 
 export default function ProjectManagement() {
   const theme = useTheme();
@@ -59,6 +60,15 @@ export default function ProjectManagement() {
     },
   ];
 
+  const subItemsTrac = [
+    {
+      label: "ECN/MCO Tracking",
+      icon: <MailOutline />,
+      path: "/FATP/FATPMachineControl",
+      type: "screen",
+    },
+  ];
+
   const menuItems = [
     {
       title: "Category",
@@ -88,7 +98,13 @@ export default function ProjectManagement() {
       title: "ECN/MCO Tracking",
       headerParts: "TrainingDocument",
       icon: <Newspaper />,
-      subItems: subItems,
+      subItems: subItemsTrac,
+      component: (
+        <ProjectTracking
+          headerParts={headerParts}
+          subHeaderParts={headerPartsSubMenu}
+        />
+      ),
     },
   ];
 
