@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Box, Fab, Paper, Typography } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import ChatHeader from "./components/ChatHeader";
 import ChatWindow from "./components/ChatWindow";
 import ChatInput from "./components/ChatInput";
@@ -23,6 +24,7 @@ const ChatBot = ({ isOpen, isPin, onStateChange, onFileChange }) => {
   const [isModeFactory, setIsModeFactory] = useState(true);
   const [position, setPosition] = useState({ bottom: 25, right: 35 });
   const user = useSelector((state) => state.auth.login.currentUser);
+  const navigate = useNavigate();
 
   const paramState = useSelector((state) => state.param);
   const paramLang = useSelector((state) => state.language);
@@ -143,6 +145,10 @@ const ChatBot = ({ isOpen, isPin, onStateChange, onFileChange }) => {
           },
         })
       );
+
+      if (data.page && data.page.dep && data.page.page_name) {
+        navigate(`/${data.page.dep}/${data.page.page_name}`);
+      }
     } catch (error) {
       console.error("Error fetching chatbot:", error); 
 

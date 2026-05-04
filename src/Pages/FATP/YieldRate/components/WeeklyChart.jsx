@@ -61,7 +61,7 @@ const WeeklyChart = ({
         ((categories2.length > 0 && idata2[week] !== null
           ? idata2[week][0].QTY
           : 0) /
-          (categories2.length > 0 && idata2[week] !== null 
+          (categories2.length > 0 && idata2[week] !== null
             ? idata2[week][0]["Rate(%)"]
             : 1)) *
         100;
@@ -111,22 +111,22 @@ const WeeklyChart = ({
 
   // categories đang là mảng ["WK46", ...]
   const columnData = listWeek.map((cat, i) => ({
-    y: dataSeries.dataProduct?.[i] ?? 0,
+    y: dataSeries.dataProduct?.[8 - listWeek.length + i] ?? 0,
     color: cat === weekSelected ? columnSelectedColor : columnBaseColor,
   }));
 
   const rateData = listWeek.map((cat, i) => ({
-    y: dataSeries.dataIssue?.[i] ?? 0,
+    y: dataSeries.dataIssue?.[8 - listWeek.length + i] ?? 0,
     dataLabels:
-      i === 0 || dataSeries.dataIssue?.[i] > dataSeries.dataIssue?.[i - 1]
+      i === 0 || dataSeries.dataIssue?.[8 - listWeek.length + i] > dataSeries.dataIssue?.[8 - listWeek.length + i - 1]
         ? {
-            color: "#ff3110",
-            fontSize: "11px",
-          }
+          color: "#ff3110",
+          fontSize: "11px",
+        }
         : {
-            color: "#00e396",
-            fontSize: "11px",
-          },
+          color: "#00e396",
+          fontSize: "11px",
+        },
   }));
 
   // Cấu hình biểu đồ đường
@@ -372,9 +372,9 @@ const getWeekDataAndPrev = (dataDefectAnalysis = [], weekSelected = "") => {
     },
     previous: prevKey
       ? {
-          key: prevKey,
-          value: prevData,
-        }
+        key: prevKey,
+        value: prevData,
+      }
       : null,
   };
 };

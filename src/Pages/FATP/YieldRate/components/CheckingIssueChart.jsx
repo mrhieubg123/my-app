@@ -71,17 +71,17 @@ const CheckingIssueChart = ({
   }, [idata, issueSelected]);
 
   const rateData = listWeek.map((cat, i) => ({
-    y: dataSeries.dataIssue?.[i] ?? 0,
+    y: dataSeries.dataIssue?.[8 - listWeek.length + i] ?? 0,
     dataLabels:
-      i === 0 || dataSeries.dataIssue?.[i] > dataSeries.dataIssue?.[i - 1]
+      i === 0 || dataSeries.dataIssue?.[8 - listWeek.length + i] > dataSeries.dataIssue?.[8 - listWeek.length + i - 1]
         ? {
-            color: "#ff3110",
-            fontSize: "11px",
-          }
+          color: "#ff3110",
+          fontSize: "11px",
+        }
         : {
-            color: "#00e396",
-            fontSize: "11px",
-          },
+          color: "#00e396",
+          fontSize: "11px",
+        },
   }));
 
   // Cấu hình biểu đồ đường

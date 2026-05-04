@@ -60,12 +60,12 @@ const AppRoutes = ({ user }) => {
   const paramState = useSelector(state => state.param);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (paramState.page.dep && paramState.page.page_name) {
-      navigate(`/${paramState.page.dep}/${paramState.page.page_name}`);
-    }
+  // useEffect(() => {
+  //   if (paramState.page.dep && paramState.page.page_name) {
+  //     navigate(`/${paramState.page.dep}/${paramState.page.page_name}`);
+  //   }
 
-  }, [paramState.page.dep, paramState.page.page_name, navigate])
+  // }, [paramState.page.dep, paramState.page.page_name, navigate])
 
 
   const PrivateRoute = ({ children, isAuthenticated, isAdmin }) => {

@@ -83,19 +83,18 @@ function App() {
         {/* backgroundImage:`url(${imgbg})` */}
         <CssBaseline />
         <AuthProvider>
-          {user && ( 
-            <ChatBot
-                onFileChange={handleFileChange}
-                isOpen={chatBotState.isOpen}
-                isPin={chatBotState.isPin}
-                onStateChange={handleChatBotState}
-            />
-          )}
-          {user && ( 
-            <Refresh/>
-          )}
-        
           <Router>
+            {user && ( 
+              <ChatBot
+                  onFileChange={handleFileChange}
+                  isOpen={chatBotState.isOpen}
+                  isPin={chatBotState.isPin}
+                  onStateChange={handleChatBotState}
+              />
+            )}
+            {user && ( 
+              <Refresh/>
+            )}
             {user && ( 
               <Header 
                 isMini={!isExpanded} 

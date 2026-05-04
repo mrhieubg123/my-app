@@ -50,6 +50,7 @@ const FATPMachine = () => {
     dateTo: "",
   });
   const [queryDate, setQueryDate] = useState("");
+  const queryMainStr = useMemo(() => JSON.stringify(queryMain.arr), [queryMain.arr]);
 
   const isFirstRender = useRef(true);
   const isFirstRender2 = useRef(true);
@@ -101,13 +102,15 @@ const FATPMachine = () => {
     }
   };
 
-  const fetchFATPMachineTotalTrend = async (model) => {
+  const fetchFATPMachineTotalTrend = async (model, isMountedObject = { current: true }) => {
     setIsLoadingData2(true);
     try {
       const response = await axiosInstance.post(
         "api/Fatp/FATPMachineTotalTrend",
         model
       );
+      if (!isMountedObject.current) return;
+      
       const data = response.data || [];
       setDataFATPMachineTotalTrend(data);
 
@@ -127,7 +130,7 @@ const FATPMachine = () => {
     }
   };
 
-  const fetchFATPMachineAnalysis = async (model) => {
+  const fetchFATPMachineAnalysis = async (model, isMountedObject = { current: true }) => {
     setIsLoadingData2(true);
     try {
       console.log("fetchFATPMachineAnalysis", model);
@@ -135,6 +138,8 @@ const FATPMachine = () => {
         "api/Fatp/FATPMachineAnalysis",
         model
       );
+      if (!isMountedObject.current) return;
+      
       setDataFATPMachineAnalysis(response.data || []); // Cập nhật state
       const tempError = {};
       response.data
@@ -195,13 +200,15 @@ const FATPMachine = () => {
     }
   };
 
-  const fetchFATPMachineError5m = async (model) => {
+  const fetchFATPMachineError5m = async (model, isMountedObject = { current: true }) => {
     setIsLoadingData2(true);
     try {
       const response = await axiosInstance.post(
         "api/Fatp/FATPMachineError5m",
         model
       );
+      if (!isMountedObject.current) return;
+      
       setDataFATPMachineError5m(response.data || []); // Cập nhật state
     } catch (error) {
       console.log(error.message);
@@ -210,13 +217,15 @@ const FATPMachine = () => {
     }
   };
 
-  const fetchFATPMachineErrorDetail = async (model) => {
+  const fetchFATPMachineErrorDetail = async (model, isMountedObject = { current: true }) => {
     setIsLoadingData2(true);
     try {
       const response = await axiosInstance.post(
         "api/Fatp/FATPMachineErrorDetail",
         model
       );
+      if (!isMountedObject.current) return;
+      
       if (model.error === "") {
         setDataAISuggest(response.data || []); // Cập nhật state
       } else {
@@ -229,13 +238,15 @@ const FATPMachine = () => {
     }
   };
 
-  const fetchFATPErrorDetail = async (model) => {
+  const fetchFATPErrorDetail = async (model, isMountedObject = { current: true }) => {
     setIsLoadingData2(true);
     try {
       const response = await axiosInstance.post(
         "api/Fatp/FATPErrorDetail",
         model
       );
+      if (!isMountedObject.current) return;
+      
       setDataFATPErrorDetail(response.data || []); // Cập nhật state
     } catch (error) {
       console.log(error.message);
@@ -262,39 +273,41 @@ const FATPMachine = () => {
 
   // const queryMainKey = useMemo(() => JSON.stringify(queryMain), [queryMain]);
   useEffect(() => {
+    const isMounted = { current: true };
     const newMo = {
       arr: queryMain.arr,
       dateFrom: paramState.params.starttime,
       dateTo: paramState.params.endtime,
     };
-    fetchFATPMachineTotalTrend(newMo);
-    fetchFATPMachineErrorDetail({ error: "" });
+    fetchFATPMachineTotalTrend(newMo, isMounted);
+    fetchFATPMachineErrorDetail({ error: "" }, isMounted);
     const interval = setInterval(() => {
       fetchFATPMachineTotalTrend(newMo);
     }, 30 * 60000);
-    return () => clearInterval(interval);
-  }, [queryMain, paramState.params.starttime, paramState.params.endtime]);
+    return () => {
+      isMounted.current = false;
+      clearInterval(interval);
+    };
+  }, [queryMainStr, paramState.params.starttime, paramState.params.endtime]);
 
   useEffect(() => {
     if (isFirstRender2.current) {
       isFirstRender2.current = false;
       return;
     }
+    const isMounted = { current: true };
     const newMo = {
       arr: queryMain.arr,
       dateFrom: queryDate ? queryDate + " 00:00:00" : "",
       dateTo: queryDate ? queryDate + " 23:59:59" : "",
     };
-    fetchFATPMachineAnalysis(newMo);
-    fetchFATPErrorDetail(newMo);
-    fetchFATPMachineError5m(newMo);
-    // const interval = setInterval(() => {
-    //   fetchFATPMachineAnalysis(newMo);
-    //   fetchFATPMachineError5m(newMo);
-    //   fetchFATPErrorDetail(newMo);
-    // }, 30 * 60000);
-    // return () => clearInterval(interval);
-  }, [queryMain, queryDate]);
+    fetchFATPMachineAnalysis(newMo, isMounted);
+    fetchFATPErrorDetail(newMo, isMounted);
+    fetchFATPMachineError5m(newMo, isMounted);
+    return () => {
+      isMounted.current = false;
+    };
+  }, [queryMainStr, queryDate]);
 
   const handleChangeMain = useCallback((model) => {
     setQueryMain((prev) => ({

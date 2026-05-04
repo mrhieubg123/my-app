@@ -45,9 +45,9 @@ const CheckingModelChart = ({
     for (const [index, week] of categories.entries()) {
       const rows = Array.isArray(data[week])
         ? data[week].filter(
-            (e) =>
-              e.ERROR_DESC === issueSelected && e.MODEL_NAME === modelSelected
-          )
+          (e) =>
+            e.ERROR_DESC === issueSelected && e.MODEL_NAME === modelSelected
+        )
         : [];
 
       const totalQtySum = listQtyProduct[index];
@@ -84,33 +84,33 @@ const CheckingModelChart = ({
   }, [idata, slotSelected, modelSelected, issueSelected]);
 
   const rateModelData = listWeek.map((cat, i) => ({
-    y: dataSeries.dataModelIssue?.[i] ?? 0,
+    y: dataSeries.dataModelIssue?.[8 - listWeek.length + i] ?? 0,
     dataLabels:
       i === 0 ||
-      dataSeries.dataModelIssue?.[i] > dataSeries.dataModelIssue?.[i - 1]
+        dataSeries.dataModelIssue?.[8 - listWeek.length + i] > dataSeries.dataModelIssue?.[8 - listWeek.length + i - 1]
         ? {
-            color: "#ff3110",
-            fontSize: "11px",
-          }
+          color: "#ff3110",
+          fontSize: "11px",
+        }
         : {
-            color: "#00e396",
-            fontSize: "11px",
-          },
+          color: "#00e396",
+          fontSize: "11px",
+        },
   }));
 
   const rateSlotData = listWeek.map((cat, i) => ({
-    y: dataSeries.dataSlotIssue?.[i] ?? 0,
+    y: dataSeries.dataSlotIssue?.[8 - listWeek.length + i] ?? 0,
     dataLabels:
       i === 0 ||
-      dataSeries.dataSlotIssue?.[i] > dataSeries.dataSlotIssue?.[i - 1]
+        dataSeries.dataSlotIssue?.[8 - listWeek.length + i] > dataSeries.dataSlotIssue?.[8 - listWeek.length + i - 1]
         ? {
-            color: "#ff3110",
-            fontSize: "11px",
-          }
+          color: "#ff3110",
+          fontSize: "11px",
+        }
         : {
-            color: "#00e396",
-            fontSize: "11px",
-          },
+          color: "#00e396",
+          fontSize: "11px",
+        },
   }));
 
   // Cấu hình biểu đồ đường
