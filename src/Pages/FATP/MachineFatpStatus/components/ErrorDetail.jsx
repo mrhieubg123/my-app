@@ -218,39 +218,68 @@ const ErrorDetail = ({ idata = [] }) => {
           name: switchMOL ? "Frequency" : "Downtime",
           type: "column",
           data: switchMOL
-            ? dataSeries.map((item) =>
+            ? dataSeries.map((item) => {
+              return {
                 // đảm bảo là number; làm tròn hiển thị bằng dataLabels/tooltip
-                Number(item?.Frequency ?? 0)
-              )
-            : dataSeries.map((item) =>
-                // đảm bảo là number; làm tròn hiển thị bằng dataLabels/tooltip
-                Number(item?.Downtime ?? 0)
-              ),
-          color: switchMOL
-            ? {
-                linearGradient: {
-                  x1: 0,
-                  y1: 0,
-                  x2: 0,
-                  y2: 1,
-                },
-                stops: [
-                  [0, "#ff3110"],
-                  [1, "#ff311000"],
-                ],
-              }:{
-                linearGradient: {
-                  x1: 0,
-                  y1: 0,
-                  x2: 0,
-                  y2: 1,
-                },
-                stops: [
-                  [0, "#2099f5"],
-                  [1, "#2099f500"],
-                ],
+                y: Number(item?.Frequency ?? 0),
+                color: item.Series === querryMachine
+                  ? {
+                    linearGradient: {
+                      x1: 0,
+                      y1: 0,
+                      x2: 0,
+                      y2: 1,
+                    },
+                    stops: [
+                      [0, "#2099f5"],
+                      [1, "#2099f500"],
+                    ],
+                  } : {
+                    linearGradient: {
+                      x1: 0,
+                      y1: 0,
+                      x2: 0,
+                      y2: 1,
+                    },
+                    stops: [
+                      [0, "#ff3110"],
+                      [1, "#ff311000"],
+                    ],
+                  },
               }
-            ,
+            }
+            )
+            : dataSeries.map((item) => {
+              return {
+                // đảm bảo là number; làm tròn hiển thị bằng dataLabels/tooltip
+                y: Number(item?.Downtime ?? 0),
+                color: item.Series === querryMachine
+                  ? {
+                    linearGradient: {
+                      x1: 0,
+                      y1: 0,
+                      x2: 0,
+                      y2: 1,
+                    },
+                    stops: [
+                      [0, "#ff3110"],
+                      [1, "#ff311000"],
+                    ],
+                  } : {
+                    linearGradient: {
+                      x1: 0,
+                      y1: 0,
+                      x2: 0,
+                      y2: 1,
+                    },
+                    stops: [
+                      [0, "#2099f5"],
+                      [1, "#2099f500"],
+                    ],
+                  },
+              }
+            }
+            ),
           dataLabels: {
             enabled: true,
             format: switchMOL ? "{y}" : "{y:.2f}", // hiển thị value trên cột
@@ -296,7 +325,7 @@ const ErrorDetail = ({ idata = [] }) => {
         },
       },
     }),
-    [theme, dataSeries, parentSize]
+    [theme, dataSeries, parentSize, querryMachine]
   );
 
   return (

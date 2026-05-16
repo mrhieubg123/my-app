@@ -118,7 +118,7 @@ const HiProgressBar = ({
         widthModal={80}
         heightModal={80}
       >
-        <ErrorDetail idata={dataFATPErrorDetail}></ErrorDetail>
+        <ErrorDetail idata={dataFATPErrorDetail} keyFilter={keyFilter}></ErrorDetail>
       </HiModal>
       <Box sx={{ position: "relative" }}>
         <Legend labels={Labels} colors={Colors} />

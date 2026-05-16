@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { DataGrid } from "@mui/x-data-grid";
+
 import {
   Box,
   Dialog,
@@ -12,6 +12,13 @@ import {
   Snackbar,
   Alert,
   Button,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  TablePagination,
 } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -40,93 +47,17 @@ const OverTimeDetail = ({ idata = [], idataMachine = [] }) => {
   });
   const [dataOverTime, setDataOverTime] = useState([]);
 
-  const columns = [
-    {
-      field: "LINE",
-      headerName: "Line",
-      flex: 1, // tự chia chiều rộng
-      minWidth: 100,
-    },
-    {
-      field: "TYPE",
-      headerName: "Type",
-      flex: 1, // tự chia chiều rộng
-      minWidth: 100,
-    },
-    {
-      field: "START_TIME",
-      headerName: "Start time",
-      flex: 1, // tự chia chiều rộng
-      minWidth: 100,
-      editable: true,
-      renderCell: (params) => (
-        <div style={{ whiteSpace: "normal", wordWrap: "break-word" }}>
-          {(params.value || "").replace("T", " ").replace(".000Z", "")}
-        </div>
-      ),
-    },
-    {
-      field: "END_TIME",
-      headerName: "End time",
-      flex: 1, // tự chia chiều rộng
-      minWidth: 100,
-      editable: true,
-      renderCell: (params) => (
-        <div style={{ whiteSpace: "normal", wordWrap: "break-word" }}>
-          {(params.value || "").replace("T", " ").replace(".000Z", "")}
-        </div>
-      ),
-    },
-    {
-      field: "COMMENT",
-      headerName: "Comment",
-      flex: 1, // tự chia chiều rộng
-      minWidth: 100,
-      editable: true,
-    },
-    {
-      field: "ID_CONFIRM",
-      headerName: "Confirm",
-      flex: 1, // tự chia chiều rộng
-      minWidth: 100,
-      editable: true,
-    },
-    {
-      field: "actions",
-      headerName: "Actions",
-      sortable: false,
-      filterable: false,
-      minWidth: 120,
-      align: "center",
-      headerAlign: "center",
-      renderCell: (params) => {
-        // params.row contains the full row data
-        const row = params.row;
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
-        return (
-          <Box sx={{ display: "flex", gap: 0.5, justifyContent: "center" }}>
-            <Button
-              title="Edit"
-              onClick={() => openDialogEdit(row)}
-              sx={{ minWidth: "unset", backgroundColor: "#9994" }}
-              size="small"
-            >
-              <EditOutlined sx={{ fontSize: "0.8rem" }}></EditOutlined>
-            </Button>
-            <Button
-              title="Delete"
-              onClick={() => handleDelete(row)}
-              color="error"
-              sx={{ minWidth: "unset", backgroundColor: "#9994" }}
-              size="small"
-            >
-              <DeleteOutline sx={{ fontSize: "0.8rem" }}></DeleteOutline>
-            </Button>
-          </Box>
-        );
-      },
-    },
-  ];
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
   const rowsWithId = useMemo(
     () =>
@@ -400,32 +331,68 @@ const OverTimeDetail = ({ idata = [], idataMachine = [] }) => {
       >
         Add item
       </Button>
-      <DataGrid
-        rows={rowsWithId}
-        columns={columns}
-        initialState={{
-          pagination: {
-            paginationModel: {
-              pageSize: 10,
-            },
-          },
-        }}
-        pageSizeOptions={[10]}
-        sx={{
-          height: "90%",
-          backgroundColor: "transparent",
-          "& .MuiDataGrid-columnHeader": {
-            backgroundColor: "transparent !important",
-          },
-          "& .MuiDataGrid-cell": {
-            whiteSpace: "normal",
-            wordBreak: "break-word",
-            lineHeight: "1.3",
-            py: 1, // padding top/bottom
-            alignItems: "flex-start", // ensure top alignment when multi-line
-          },
-        }}
-      />
+      <Box sx={{ height: "90%", display: "flex", flexDirection: "column" }}>
+        <TableContainer sx={{ flexGrow: 1, overflow: "auto" }}>
+          <Table stickyHeader size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ backgroundColor: "transparent", color: "inherit", fontWeight: "bold" }}>Line</TableCell>
+                <TableCell sx={{ backgroundColor: "transparent", color: "inherit", fontWeight: "bold" }}>Type</TableCell>
+                <TableCell sx={{ backgroundColor: "transparent", color: "inherit", fontWeight: "bold" }}>Start time</TableCell>
+                <TableCell sx={{ backgroundColor: "transparent", color: "inherit", fontWeight: "bold" }}>End time</TableCell>
+                <TableCell sx={{ backgroundColor: "transparent", color: "inherit", fontWeight: "bold" }}>Comment</TableCell>
+                <TableCell sx={{ backgroundColor: "transparent", color: "inherit", fontWeight: "bold" }}>Confirm</TableCell>
+                <TableCell align="center" sx={{ backgroundColor: "transparent", color: "inherit", fontWeight: "bold" }}>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rowsWithId
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell sx={{ whiteSpace: "normal", wordBreak: "break-word", color: "inherit" }}>{row.LINE}</TableCell>
+                    <TableCell sx={{ whiteSpace: "normal", wordBreak: "break-word", color: "inherit" }}>{row.TYPE}</TableCell>
+                    <TableCell sx={{ whiteSpace: "normal", wordBreak: "break-word", color: "inherit" }}>{(row.START_TIME || "").replace("T", " ").replace(".000Z", "")}</TableCell>
+                    <TableCell sx={{ whiteSpace: "normal", wordBreak: "break-word", color: "inherit" }}>{(row.END_TIME || "").replace("T", " ").replace(".000Z", "")}</TableCell>
+                    <TableCell sx={{ whiteSpace: "normal", wordBreak: "break-word", color: "inherit" }}>{row.COMMENT}</TableCell>
+                    <TableCell sx={{ whiteSpace: "normal", wordBreak: "break-word", color: "inherit" }}>{row.ID_CONFIRM}</TableCell>
+                    <TableCell align="center">
+                      <Box sx={{ display: "flex", gap: 0.5, justifyContent: "center" }}>
+                        <Button
+                          title="Edit"
+                          onClick={() => openDialogEdit(row)}
+                          sx={{ minWidth: "unset", backgroundColor: "#9994" }}
+                          size="small"
+                        >
+                          <EditOutlined sx={{ fontSize: "0.8rem" }}></EditOutlined>
+                        </Button>
+                        <Button
+                          title="Delete"
+                          onClick={() => handleDelete(row)}
+                          color="error"
+                          sx={{ minWidth: "unset", backgroundColor: "#9994" }}
+                          size="small"
+                        >
+                          <DeleteOutline sx={{ fontSize: "0.8rem" }}></DeleteOutline>
+                        </Button>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          component="div"
+          count={rowsWithId.length}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          rowsPerPageOptions={[10, 25, 50]}
+          sx={{ color: "inherit" }}
+        />
+      </Box>
       {/* Toast notification */}
       <Snackbar
         open={toast.open}

@@ -9,6 +9,7 @@ import {
 } from "@mui/icons-material";
 import { DataGrid } from "@mui/x-data-grid";
 import dayjs from "dayjs";
+import HiModal from "../../../components/HiModal";
 import { getAuthorizedAxiosIntance } from "../../../utils/axiosConfig";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
@@ -88,6 +89,9 @@ const generateMockData = () => {
 // ------------------------------------------------------------
 const FailureAnalysis = () => {
     const [mockData, setMockData] = useState([]);
+    const [mockErrorData, setMockErrorData] = useState([]);
+    const [openTrendModal, setOpenTrendModal] = useState(false);
+    const [selectedErrorForTrend, setSelectedErrorForTrend] = useState(null);
 
     useEffect(() => {
         let isMounted = true;
@@ -104,6 +108,15 @@ const FailureAnalysis = () => {
                     }));
                     // Cập nhật state dữ liệu thật từ API
                     setMockData(rowsWithId);
+                }
+                const res1 = await axiosInstance.get("/api/fatp/getError7Day", {});
+                if (isMounted && res1.data && Array.isArray(res1.data)) {
+                    const rowsWithId = res.data.map((row, index) => ({
+                        id: index, // hoặc row.LINE nếu unique
+                        ...row,
+                    }));
+                    // Cập nhật state dữ liệu thật từ API
+                    setMockErrorData(rowsWithId);
                 }
             } catch (error) {
                 console.error("Error fetching FATPMachineFailureAnalysis:", error);
@@ -127,7 +140,7 @@ const FailureAnalysis = () => {
 
     // --- Tính toán Metrics tổng quan ---
     const metrics = useMemo(() => {
-        if (!mockData.length) return { totalDowntime: 0, totalEvents: 0, critLine: '', probMachine: '', topError: '', avgTime: 0 };
+        if (!mockData.length) return { totalDowntime: 0, totalEvents: 0, critLine: '', probMachine: '-', topError: '', avgTime: 0 };
 
         let totalDowntime = 0;
         const lineMap = {};
@@ -137,7 +150,8 @@ const FailureAnalysis = () => {
         mockData.forEach(event => {
             totalDowntime += event.duration;
             lineMap[event.line] = (lineMap[event.line] || 0) + event.duration;
-            machineMap[event.machine] = (machineMap[event.machine] || 0) + event.duration;
+            const machineKey = `${event.line} - ${event.machine}`;
+            machineMap[machineKey] = (machineMap[machineKey] || 0) + event.duration;
             errorMap[event.error] = (errorMap[event.error] || 0) + event.duration;
         });
 
@@ -164,7 +178,8 @@ const FailureAnalysis = () => {
         // 1. Phân tích Machine phát sinh lỗi nhiều bất thường
         const machineErrors = {};
         mockData.forEach(d => {
-            machineErrors[d.machine] = (machineErrors[d.machine] || 0) + 1;
+            const machineKey = `${d.line} - ${d.machine}`;
+            machineErrors[machineKey] = (machineErrors[machineKey] || 0) + 1;
         });
         const totalMachineErrors = mockData.length;
         const avgErrorsPerMachine = totalMachineErrors / Object.keys(machineErrors).length;
@@ -287,6 +302,19 @@ const FailureAnalysis = () => {
                 { title: { text: '' }, opposite: true, min: 0, max: 100, tickInterval: 20, labels: { format: '{value}%', style: { color: '#94a3b8' } } }
             ],
             tooltip: { shared: true },
+            plotOptions: {
+                series: {
+                    cursor: 'pointer',
+                    point: {
+                        events: {
+                            click: function () {
+                                setSelectedErrorForTrend(this.category || this.name);
+                                setOpenTrendModal(true);
+                            }
+                        }
+                    }
+                }
+            },
             series: [
                 {
                     name: 'Cumulative Percentage', type: 'pareto', yAxis: 1, zIndex: 10,
@@ -301,6 +329,65 @@ const FailureAnalysis = () => {
             credits: { enabled: false }
         };
     }, [mockData]);
+
+    // --- Cấu hình Highcharts: Trend Modal ---
+    const trendData = useMemo(() => {
+        if (!selectedErrorForTrend || !mockErrorData.length) return { categories: [], data: [], insight: "", color: "" };
+
+        const errorEvents = mockErrorData.filter(d => d.error === selectedErrorForTrend);
+
+        const now = dayjs();
+        let latestDay = now.startOf('day');
+        if (now.hour() < 7) {
+            latestDay = latestDay.subtract(1, 'day');
+        }
+
+        const last7Days = Array.from({ length: 7 }).map((_, i) => latestDay.subtract(6 - i, 'day').format('YYYY-MM-DD'));
+
+        const dataByDay = {};
+        errorEvents.forEach(event => {
+            let eventTime = dayjs(event.start_time);
+            if (eventTime.hour() < 7) {
+                eventTime = eventTime.subtract(1, 'day');
+            }
+            const dayStr = eventTime.format('YYYY-MM-DD');
+            dataByDay[dayStr] = (dataByDay[dayStr] || 0) + event.duration;
+        });
+
+        const categories = last7Days.map(d => dayjs(d).format('DD/MM'));
+        const data = last7Days.map(day => dataByDay[day] || 0);
+
+        const recentSum = data.slice(-3).reduce((a, b) => a + b, 0);
+        const olderSum = data.slice(0, 4).reduce((a, b) => a + b, 0);
+
+        let insight = "";
+        let color = "";
+        if (recentSum > olderSum * 1.2) {
+            insight = `Xu hướng lỗi này đang có dấu hiệu TĂNG MẠNH trong 3 ngày gần đây (${recentSum} phút vs ${olderSum} phút của 4 ngày trước). Cần chú ý kiểm tra ngay.`;
+            color = "#f87171"; // red
+        } else if (recentSum < olderSum * 0.8) {
+            insight = `Xu hướng lỗi này đang GIẢM (${recentSum} phút vs ${olderSum} phút của 4 ngày trước). Các biện pháp khắc phục có vẻ đang phát huy hiệu quả.`;
+            color = "#34d399"; // green
+        } else {
+            insight = `Xu hướng lỗi này tương đối ỔN ĐỊNH. Không có biến động bất thường đáng kể (${recentSum} phút vs ${olderSum} phút).`;
+            color = "#fbbf24"; // yellow
+        }
+
+        return { categories, data, insight, color };
+    }, [selectedErrorForTrend, mockErrorData]);
+
+    const trendChartOptions = useMemo(() => {
+        return {
+            chart: { type: 'spline', backgroundColor: 'transparent' },
+            title: { text: `Xu hướng 7 ngày: ${selectedErrorForTrend || ''}`, style: { color: '#e2e8f0', fontWeight: 'bold', fontSize: '16px' } },
+            xAxis: { categories: trendData.categories, labels: { style: { color: '#94a3b8' } } },
+            yAxis: { title: { text: 'Downtime (Phút)', style: { color: '#94a3b8' } }, labels: { style: { color: '#94a3b8' } } },
+            tooltip: { valueSuffix: ' phút' },
+            series: [{ name: 'Downtime', data: trendData.data, color: '#3b82f6', marker: { lineWidth: 2, lineColor: '#3b82f6', fillColor: '#0f172a' } }],
+            credits: { enabled: false },
+            legend: { enabled: false }
+        };
+    }, [trendData, selectedErrorForTrend]);
 
     // --- Cấu hình Highcharts: X-Range ---
     const xrangeOptions = useMemo(() => {
@@ -365,7 +452,7 @@ const FailureAnalysis = () => {
     ];
 
     return (
-        <Box sx={{ bgcolor: "#0b0d17", color: "#e2e8f0", p: { xs: 1, md: 3 }, minHeight: "100vh" }}>
+        <Box sx={{ color: "#e2e8f0", p: { xs: 1, md: 3 }, minHeight: "100vh" }}>
 
             {/* --- HEADER ---
             <Box sx={{
@@ -394,7 +481,7 @@ const FailureAnalysis = () => {
             <Box sx={{ mb: 3, p: 1.5, borderRadius: '8px', bgcolor: 'rgba(245, 158, 11, 0.1)', borderLeft: '4px solid #f59e0b', display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <ElectricBolt sx={{ color: '#f59e0b', animation: 'pulse 1.5s infinite' }} />
                 <Typography sx={{ color: '#fcd34d', fontWeight: 600 }}>
-                    Smart Alert: Máy <span style={{ color: '#fff' }}>{metrics.probMachine}</span> đang gây đình trệ dây chuyền <span style={{ color: '#fff' }}>{metrics.critLine}</span> nhiều nhất với lỗi <span style={{ color: '#fff' }}>{metrics.topError}</span>.
+                    Smart Alert: Máy <span style={{ color: '#fff' }}>{metrics.probMachine}</span> đang gây đình trệ dây chuyền <span style={{ color: '#fff' }}>{metrics.probMachine.split("-")[0]}</span> nhiều nhất với lỗi <span style={{ color: '#fff' }}>{metrics.topError}</span>.
                 </Typography>
             </Box>
 
@@ -518,6 +605,31 @@ const FailureAnalysis = () => {
                     />
                 </Box>
             </Box>
+
+            {/* --- TREND MODAL --- */}
+            <HiModal
+                open={openTrendModal}
+                onClose={() => setOpenTrendModal(false)}
+                header={`Phân tích xu hướng lỗi`}
+                widthModal={60}
+                heightModal={60}
+                whereRight="20vw"
+                whereTop="10vh"
+            >
+                <Box sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                    <Box sx={{ flexGrow: 1, minHeight: '300px' }}>
+                        <HighchartsReact highcharts={Highcharts} options={trendChartOptions} />
+                    </Box>
+                    {trendData.insight && (
+                        <Box sx={{ mt: 3, p: 2, borderRadius: '8px', bgcolor: 'rgba(255,255,255,0.05)', borderLeft: `4px solid ${trendData.color}` }}>
+                            <Typography sx={{ color: '#e2e8f0', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <ShowChart sx={{ color: trendData.color }} />
+                                {trendData.insight}
+                            </Typography>
+                        </Box>
+                    )}
+                </Box>
+            </HiModal>
 
             {/* Thêm CSS Keyframes cho hiệu ứng chớp tắt nếu cần */}
             <style>
