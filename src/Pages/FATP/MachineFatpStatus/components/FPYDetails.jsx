@@ -15,6 +15,7 @@ import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import { getAuthorizedAxiosIntance } from "../../../../utils/axiosConfig";
 import Drilldown from "highcharts/modules/drilldown";
 import MachineOutputDrillChart from "./MachineOutputDrillChart";
+import { useSelector, useDispatch } from "react-redux";
 
 Drilldown(Highcharts);
 
@@ -30,6 +31,7 @@ const FPYDetails = ({
   const [weeklyData, setWeeklyData] = useState([]);
   const [dataMinCycleTimeAndLatestRow, setDataMinCycleTimeAndLatestRow] =
     useState([]);
+  const selectedFactory = useSelector((state) => state.param.params.Factory);
 
   const kpis = {
     totalInspections: 12840,
@@ -71,6 +73,7 @@ const FPYDetails = ({
         {
           line: selectMachineDetail.line,
           location: selectMachineDetail.location,
+          factory: selectedFactory,
         },
       );
       const data = response.data || [];
@@ -87,6 +90,7 @@ const FPYDetails = ({
         {
           line: selectMachineDetail.line,
           location: selectMachineDetail.location,
+          factory: selectedFactory,
         },
       );
       const data = response.data || [];

@@ -17,6 +17,8 @@ import HighchartsMore from 'highcharts/highcharts-more';
 import Heatmap from 'highcharts/modules/heatmap';
 import Pareto from 'highcharts/modules/pareto';
 import XRange from 'highcharts/modules/xrange';
+import { useSelector, useDispatch } from "react-redux";
+
 if (typeof Highcharts === 'object') {
     HighchartsMore(Highcharts);
     Heatmap(Highcharts);
@@ -92,6 +94,7 @@ const FailureAnalysis = () => {
     const [mockErrorData, setMockErrorData] = useState([]);
     const [openTrendModal, setOpenTrendModal] = useState(false);
     const [selectedErrorForTrend, setSelectedErrorForTrend] = useState(null);
+    const selectedFactory = useSelector((state) => state.param.params.Factory);
 
     useEffect(() => {
         let isMounted = true;
@@ -100,7 +103,7 @@ const FailureAnalysis = () => {
         const fetchData = async () => {
             try {
                 const axiosInstance = await getAuthorizedAxiosIntance();
-                const res = await axiosInstance.post("/api/fatp/FATPMachineFailureAnalysis", {});
+                const res = await axiosInstance.post("/api/fatp/FATPMachineFailureAnalysis", { factory: selectedFactory });
                 if (isMounted && res.data && Array.isArray(res.data)) {
                     const rowsWithId = res.data.map((row, index) => ({
                         id: index, // hoặc row.LINE nếu unique
@@ -109,7 +112,7 @@ const FailureAnalysis = () => {
                     // Cập nhật state dữ liệu thật từ API
                     setMockData(rowsWithId);
                 }
-                const res1 = await axiosInstance.get("/api/fatp/getError7Day", {});
+                const res1 = await axiosInstance.post("/api/fatp/getError7Day", { factory: selectedFactory });
                 if (isMounted && res1.data && Array.isArray(res1.data)) {
                     const rowsWithId = res.data.map((row, index) => ({
                         id: index, // hoặc row.LINE nếu unique

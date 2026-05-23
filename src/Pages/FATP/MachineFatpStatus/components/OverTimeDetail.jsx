@@ -13,6 +13,7 @@ import {
   Alert,
   Button,
 } from "@mui/material";
+import { useSelector, useDispatch } from "react-redux";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
@@ -37,8 +38,10 @@ const OverTimeDetail = ({ idata = [], idataMachine = [] }) => {
     type: "",
     comment: "",
     idConfirm: "",
+    factory: selectedFactory,
   });
   const [dataOverTime, setDataOverTime] = useState([]);
+  const selectedFactory = useSelector((state) => state.param.params.Factory);
 
   const columns = [
     {
@@ -139,7 +142,7 @@ const OverTimeDetail = ({ idata = [], idataMachine = [] }) => {
 
   const fetchDataOverTime = async () => {
     try {
-      const response = await axiosInstance.get("api/Fatp/DataOverTime");
+      const response = await axiosInstance.post("api/Fatp/DataOverTime", { factory: selectedFactory });
       setDataOverTime(response.data || []); // Cập nhật state
     } catch (error) {
       console.log(error.message);
@@ -159,6 +162,7 @@ const OverTimeDetail = ({ idata = [], idataMachine = [] }) => {
       type: "",
       comment: "",
       idConfirm: "",
+      factory: selectedFactory,
     });
     setNewFolderDialogOpen6(true);
   };
@@ -172,6 +176,7 @@ const OverTimeDetail = ({ idata = [], idataMachine = [] }) => {
       type: row.TYPE,
       comment: row.Comment || "",
       idConfirm: row.ID_CONFIRM || "",
+      factory: selectedFactory,
     });
     setNewFolderDialogOpen6(true);
   };

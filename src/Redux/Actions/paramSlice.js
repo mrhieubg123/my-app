@@ -7,16 +7,16 @@ const initialState = {
     file_name: "",
     highlight: [],
     msg: "",
-    page:"",
+    page: "",
     questions: "",
     showpage: "",
     status_code: "",
     params: {
         Building: "",
-        Factory:"",
-        Linename:"",
+        Factory: "A02",
+        Linename: "",
         Machine: "",
-        Project:"",
+        Project: "",
         Section: "",
         endtime: "",
         starttime: "",
@@ -35,16 +35,16 @@ const initialState = {
 const paramSlice = createSlice({
     name: 'param',
     initialState,
-    reducers:{
-        setParam:(state, action) =>{
-            return{
+    reducers: {
+        setParam: (state, action) => {
+            return {
                 ...state,
                 ...action.payload, //ghi  de khi co du lieu moi
-                params:{
+                params: {
                     ...state.params,
                     ...action.payload.params
                 },
-                topic:{
+                topic: {
                     ...state.topic,
                     ...action.payload.topic
                 }
@@ -54,5 +54,5 @@ const paramSlice = createSlice({
     },
 });
 
-export const {setParam , resetParam} = paramSlice.actions;
+export const { setParam, resetParam } = paramSlice.actions;
 export default paramSlice.reducer;

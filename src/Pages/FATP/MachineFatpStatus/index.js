@@ -9,19 +9,8 @@ import React, {
 import { useSelector, useDispatch } from "react-redux";
 import HiBox from "../../../components/HiBox";
 import {
-  Box,
   Grid,
-  CircularProgress,
   Switch,
-  Typography,
-  TableContainer,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Paper,
-  TableSortLabel,
   Button,
 } from "@mui/material";
 import TableMachineStatus from "./components/MachineStatus";
@@ -50,6 +39,8 @@ const FATPMachine = () => {
     dateTo: "",
   });
   const [queryDate, setQueryDate] = useState("");
+  const selectedFactory = useSelector((state) => state.param.params.Factory);
+
   const queryMainStr = useMemo(() => JSON.stringify(queryMain.arr), [queryMain.arr]);
 
   const isFirstRender = useRef(true);
@@ -93,7 +84,7 @@ const FATPMachine = () => {
   const fetchFATPMachineStatus = async () => {
     setIsLoadingData(true);
     try {
-      const response = await axiosInstance.get("api/Fatp/FATPMachineStatus");
+      const response = await axiosInstance.post("api/Fatp/FATPMachineStatus", { factory: selectedFactory });
       setDataFATPMachineStatus(response.data || []); // Cập nhật state
     } catch (error) {
       console.log(error.message);
@@ -110,7 +101,7 @@ const FATPMachine = () => {
         model
       );
       if (!isMountedObject.current) return;
-      
+
       const data = response.data || [];
       setDataFATPMachineTotalTrend(data);
 
@@ -139,7 +130,7 @@ const FATPMachine = () => {
         model
       );
       if (!isMountedObject.current) return;
-      
+
       setDataFATPMachineAnalysis(response.data || []); // Cập nhật state
       const tempError = {};
       response.data
@@ -208,7 +199,7 @@ const FATPMachine = () => {
         model
       );
       if (!isMountedObject.current) return;
-      
+
       setDataFATPMachineError5m(response.data || []); // Cập nhật state
     } catch (error) {
       console.log(error.message);
@@ -225,7 +216,7 @@ const FATPMachine = () => {
         model
       );
       if (!isMountedObject.current) return;
-      
+
       if (model.error === "") {
         setDataAISuggest(response.data || []); // Cập nhật state
       } else {
@@ -246,7 +237,7 @@ const FATPMachine = () => {
         model
       );
       if (!isMountedObject.current) return;
-      
+
       setDataFATPErrorDetail(response.data || []); // Cập nhật state
     } catch (error) {
       console.log(error.message);
@@ -261,23 +252,15 @@ const FATPMachine = () => {
       fetchFATPMachineStatus();
     }, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [selectedFactory]);
 
-  // useEffect(() => {
-  //   setQueryMain((prev) => ({
-  //     ...prev,
-  //     dateFrom: paramState.params.starttime,
-  //     dateTo: paramState.params.endtime,
-  //   }));
-  // }, [paramState.params.starttime, paramState.params.endtime]);
-
-  // const queryMainKey = useMemo(() => JSON.stringify(queryMain), [queryMain]);
   useEffect(() => {
     const isMounted = { current: true };
     const newMo = {
       arr: queryMain.arr,
       dateFrom: paramState.params.starttime,
       dateTo: paramState.params.endtime,
+      factory: selectedFactory,
     };
     fetchFATPMachineTotalTrend(newMo, isMounted);
     fetchFATPMachineErrorDetail({ error: "" }, isMounted);
@@ -288,7 +271,7 @@ const FATPMachine = () => {
       isMounted.current = false;
       clearInterval(interval);
     };
-  }, [queryMainStr, paramState.params.starttime, paramState.params.endtime]);
+  }, [queryMainStr, paramState.params.starttime, paramState.params.endtime, selectedFactory]);
 
   useEffect(() => {
     if (isFirstRender2.current) {
@@ -300,6 +283,7 @@ const FATPMachine = () => {
       arr: queryMain.arr,
       dateFrom: queryDate ? queryDate + " 00:00:00" : "",
       dateTo: queryDate ? queryDate + " 23:59:59" : "",
+      factory: selectedFactory,
     };
     fetchFATPMachineAnalysis(newMo, isMounted);
     fetchFATPErrorDetail(newMo, isMounted);
@@ -307,7 +291,7 @@ const FATPMachine = () => {
     return () => {
       isMounted.current = false;
     };
-  }, [queryMainStr, queryDate]);
+  }, [queryMainStr, queryDate, selectedFactory]);
 
   const handleChangeMain = useCallback((model) => {
     setQueryMain((prev) => ({

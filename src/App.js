@@ -1,5 +1,5 @@
-import React, { useState ,useEffect,  useCallback} from 'react';
-import { CssBaseline, ThemeProvider,  Box, useMediaQuery, useTheme, Grid   } from '@mui/material';
+import React, { useState, useEffect, useCallback } from 'react';
+import { CssBaseline, ThemeProvider, Box, useMediaQuery, useTheme, Grid } from '@mui/material';
 import { lightTheme, darkTheme } from './Assets/Theme/theme';
 import ErrorBoundary from './components/ErrorBoundary';
 import { BrowserRouter as Router, } from 'react-router-dom';
@@ -18,19 +18,20 @@ import imgbg from './Assets/img/background-hfQ0Sry9.png'
 // import AnimatedRouter from './Examples/AnimatedRouter';
 import AppRoutes from './AppRoutes';
 import Refresh from './Examples/Refresh/Refresh';
+import FactorySelect from './Examples/Factory/FactorySelect';
 import FullScreem from './Examples/Refresh/fullScreem';
 
 function App() {
   const user = useSelector((state) => state.auth.login.currentUser);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [showPDFOpen , setShowPDFOpen] = useState(false);
-  const [showFilePDFOpen , setShowFilePDFOpen] = useState({showFile: '',fileName: ''});
+  const [showPDFOpen, setShowPDFOpen] = useState(false);
+  const [showFilePDFOpen, setShowFilePDFOpen] = useState({ showFile: '', fileName: '' });
 
 
   const [isMini, setIsMini] = useState(true); // Quản lý trạng thái mini từ Sidebar
   const [isHovered, setIsHovered] = useState(false); // Kiểm soát trạng thái hover
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Trạng thái mở/đóng sidebar
-  const [chatBotState, setChatBotState] = useState({isOpen: false, isPin: true});
+  const [chatBotState, setChatBotState] = useState({ isOpen: false, isPin: true });
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -40,21 +41,21 @@ function App() {
       localStorage.setItem('theme', newMode ? 'dark' : 'light');
       return newMode;
     });
-  },[]);
+  }, []);
 
   // Hàm nhận trạng thái từ Sidebar
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen((prev) => !prev); // Thay đổi trạng thái của sidebar khi nhấn MenuIcon
-  },[]);
+  }, []);
 
   const handleToggleMini = useCallback((mini) => {
     setIsMini(mini);
-  },[]);
+  }, []);
 
   const handleChatBotState = useCallback((newState) => {
-    setChatBotState((prev) => ({...prev, ...newState}));
-  },[])
-  
+    setChatBotState((prev) => ({ ...prev, ...newState }));
+  }, [])
+
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme) {
@@ -62,60 +63,63 @@ function App() {
     }
   }, []);
 
- // Kiểm tra trạng thái mở rộng của Sidebar
- const isExpanded = !isMini || isHovered;
- // Kiểm tra Theme
+  // Kiểm tra trạng thái mở rộng của Sidebar
+  const isExpanded = !isMini || isHovered;
+  // Kiểm tra Theme
   const memoizedTheme = React.useMemo(() => (isDarkMode ? darkTheme : lightTheme), [isDarkMode])
-  
-  const handleFileChange = (model)=>{
+
+  const handleFileChange = (model) => {
     setShowFilePDFOpen(prev => ({
       ...prev,
       showFile: model.showFile,
       fileName: model.fileName
-  }))
+    }))
     setShowPDFOpen((prev) => !prev)
 
   }
 
   return (
     <ThemeProvider theme={memoizedTheme}>
-      <Box sx={{backgroundColor: !isDarkMode ? "#f4f5fa" : "#29243c", padding:0, minHeight:'100vh' }}>
+      <Box sx={{ backgroundColor: !isDarkMode ? "#f4f5fa" : "#29243c", padding: 0, minHeight: '100vh' }}>
         {/* backgroundImage:`url(${imgbg})` */}
         <CssBaseline />
         <AuthProvider>
           <Router>
-            {user && ( 
+            {user && (
               <ChatBot
-                  onFileChange={handleFileChange}
-                  isOpen={chatBotState.isOpen}
-                  isPin={chatBotState.isPin}
-                  onStateChange={handleChatBotState}
+                onFileChange={handleFileChange}
+                isOpen={chatBotState.isOpen}
+                isPin={chatBotState.isPin}
+                onStateChange={handleChatBotState}
               />
             )}
-            {user && ( 
-              <Refresh/>
+            {user && (
+              <Refresh />
             )}
-            {user && ( 
-              <Header 
-                isMini={!isExpanded} 
-                isSmallScreen = {isSmallScreen}  
+            {user && (
+              <FactorySelect />
+            )}
+            {user && (
+              <Header
+                isMini={!isExpanded}
+                isSmallScreen={isSmallScreen}
                 toggleSidebar={toggleSidebar}
                 toggleTheme={toggleTheme} // Truyền hàm toggleTheme xuống Header
                 isDarkMode={isDarkMode} // Truyền trạng thái hiện tại
               />
             )}
-            <Box sx={{ display: 'flex'}} >
+            <Box sx={{ display: 'flex' }} >
               {/* Sidebar */}
-              {user && ( 
-                <Sidebar 
-                  onToggleMini={handleToggleMini} 
-                  isSmallScreen = {isSmallScreen} 
-                  isOpen={isSidebarOpen}  
+              {user && (
+                <Sidebar
+                  onToggleMini={handleToggleMini}
+                  isSmallScreen={isSmallScreen}
+                  isOpen={isSidebarOpen}
                   toggleSidebar={toggleSidebar}
                 />
               )}
-             {/* Main Content */}
-              <Box 
+              {/* Main Content */}
+              <Box
                 sx={{
                   flexGrow: 1,
                   padding: user ? 1 : 0,
@@ -129,10 +133,10 @@ function App() {
                   '&::-webkit-scrollbar-thumb': { backgroundColor: '#cdcdcd8c', borderRadius: '10px' }
                 }}
               >
-                <HiShowFilePDF whereMove='right' open={showPDFOpen} onClose={()=> setShowPDFOpen(false)}  showFile = {showFilePDFOpen.showFile} fileName= {showFilePDFOpen.fileName} />
-               
-                  <AppRoutes user={user} />
-            
+                <HiShowFilePDF whereMove='right' open={showPDFOpen} onClose={() => setShowPDFOpen(false)} showFile={showFilePDFOpen.showFile} fileName={showFilePDFOpen.fileName} />
+
+                <AppRoutes user={user} />
+
               </Box>
             </Box>
           </Router>
