@@ -9,6 +9,7 @@ import RadialChart from "./components/RadialChart";
 import TableMaintenanceHistory from "./components/TableMaintenanceHistory";
 import HiModal from "../../../components/HiModal";
 import ErrorDetail from "./components/ErrorDetail";
+import factory from "highcharts/highcharts-3d";
 
 const axiosInstance = await getAuthorizedAxiosIntance();
 const MONTH_ABBR = [
@@ -36,11 +37,12 @@ const MaintenanceStatus = () => {
   const [monthSelect, setMonthSelect] = useState(null);
   const [dataMaintenanceDetailFilter, setDataMaintenanceDetailFilter] =
     useState([]);
+  const selectedFactory = useSelector((state) => state.param.params.Factory);
 
   const fetchMaintenancePlan = async (model) => {
     try {
       const response = await axiosInstance.post(
-        "api/maintenance/getMaintenancePlanApi",
+        "api/maintenance/getFATPMaintenanceMultiMonth",
         model
       );
       setDataMaintenancePlan(response.data || []); // Cập nhật state
@@ -59,27 +61,35 @@ const MaintenanceStatus = () => {
     const newMo = {
       dateFrom: paramState.params.starttime,
       dateTo: paramState.params.endtime,
+      factory: selectedFactory
     };
     fetchMaintenancePlan(newMo);
-  }, [paramState.params.starttime, paramState.params.endtime]);
+  }, [paramState.params.starttime, paramState.params.endtime, selectedFactory]);
 
   useEffect(() => {
     const todayStr = new Date().toISOString().slice(0, 10);
-    if (monthSelect == null) {
-      setDataMaintenancePlanSelect(
-        dataMaintenancePlan.filter(
-          (item) =>
-            getMonthAbbrFromDate(item.DATE_CHECK) ===
-            getMonthAbbrFromDate(todayStr)
-        )
-      );
-    } else {
-      setDataMaintenancePlanSelect(
-        dataMaintenancePlan.filter(
-          (item) => getMonthAbbrFromDate(item.DATE_CHECK) === monthSelect
-        )
-      );
-    }
+    const targetMonth = monthSelect || getMonthAbbrFromDate(todayStr);
+
+    const machinesMap = {};
+
+    (dataMaintenancePlan || []).forEach((item) => {
+      const machineId = item.ID;
+      const isMatchingMonth = getMonthAbbrFromDate(item.DATE_CHECK) === targetMonth;
+
+      if (!machinesMap[machineId] || isMatchingMonth) {
+        machinesMap[machineId] = {
+          ...item,
+          STATUS: isMatchingMonth ? item.STATUS : null,
+          NOTE: isMatchingMonth ? item.NOTE : null,
+          DOCUMENT: isMatchingMonth ? item.DOCUMENT : null,
+          DATE_CHECK: isMatchingMonth ? item.DATE_CHECK : null,
+          UPDATED_AT: isMatchingMonth ? item.UPDATED_AT : null,
+          TARGET_MONTH: targetMonth,
+        };
+      }
+    });
+
+    setDataMaintenancePlanSelect(Object.values(machinesMap));
   }, [dataMaintenancePlan, monthSelect]);
 
   const openModalMaintenanceDetails = (data) => {

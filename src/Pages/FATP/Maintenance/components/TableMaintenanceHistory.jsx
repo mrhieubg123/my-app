@@ -141,83 +141,79 @@ const TableMaintenanceHistory = ({ idata = [], onCallBack, monthSelect }) => {
           >
             {idata.length > 0
               ? uniqueFirstByLine.map(
-                  (
-                    row,
-                    index //,ERROR,ERROR_CODE,root_,EMP_confirm, act
-                  ) => (
-                    <TableRow key={index}>
-                      <TableCell
-                        align="center"
-                        component="th"
-                        scope="row"
-                        style={{
-                          padding: "3px",
-                          fontSize: "12px",
-                          color: row.CARD_CODE !== null ? "" : "#ff3110",
-                        }}
-                      >
-                        {index + 1 || ""}
-                      </TableCell>
-                      <TableCell
-                        align="center"
-                        style={{
-                          padding: "3px",
-                          fontSize: "12px",
-                          color: row.CARD_CODE !== null ? "" : "#ff3110",
-                        }}
-                      >
-                        {row.LINE || ""}
-                      </TableCell>
-                      {Array.from({ length: 12 }, (_, i) => {
-                        const monthKey = MONTH_ABBR[i]; // "JAN", "FEB", ...
-                        const monthArr = row[monthKey]; // mảng các item của tháng đó (hoặc undefined)
-                        const rawStatus = monthArr?.[0]?.STATUS_NAME ?? null;
+                (
+                  row,
+                  index //,ERROR,ERROR_CODE,root_,EMP_confirm, act
+                ) => (
+                  <TableRow key={index}>
+                    <TableCell
+                      align="center"
+                      component="th"
+                      scope="row"
+                      style={{
+                        padding: "3px",
+                        fontSize: "12px",
+                        color: row.CARD_CODE !== null ? "" : "#ff3110",
+                      }}
+                    >
+                      {index + 1 || ""}
+                    </TableCell>
+                    <TableCell
+                      align="center"
+                      style={{
+                        padding: "3px",
+                        fontSize: "12px",
+                        color: row.CARD_CODE !== null ? "" : "#ff3110",
+                      }}
+                    >
+                      {row.LINE || ""}
+                    </TableCell>
+                    {Array.from({ length: 12 }, (_, i) => {
+                      const monthKey = MONTH_ABBR[i]; // "JAN", "FEB", ...
+                      const monthArr = row[monthKey]; // mảng các item của tháng đó (hoặc undefined)
+                      const rawStatus = monthArr?.[0]?.STATUS ?? monthArr?.[0]?.STATUS_NAME ?? null;
+                      const isApprove = rawStatus && rawStatus.toLowerCase() === "approve";
 
-                        let display = "NA";
-                        let bg = "#a4aca9";
-                        let color = "#000";
+                      const currentMonthIndex = new Date().getMonth();
+                      const isBeforeCurrentMonth = i < currentMonthIndex;
+                      const isAfterCurrentMonth = i > currentMonthIndex;
 
-                        if (rawStatus === "approve") {
-                          display = "OK";
-                          bg =
-                            "linear-gradient(180deg, #66bb6a 0%, #2e7d32 100%)"; // xanh
-                          color = "#fff";
-                        } else if (rawStatus === null && monthArr) {
-                          const todayStr = new Date()
-                            .toISOString()
-                            .slice(0, 10);
-                          if (monthArr?.[0]?.DATE_CHECK >= todayStr) {
-                            display = "Ongoing";
-                            bg =
-                              "linear-gradient(180deg, #fff176 0%, #fbc02d 100%)"; // vàng
-                            color = "#000";
-                          } else {
-                            display = "Delay";
-                            bg =
-                              "linear-gradient(180deg,rgb(233, 85, 80) 0%,rgb(241, 16, 8) 100%)"; // vàng
-                            color = "#fff";
-                          }
-                          // Có dữ liệu tháng nhưng STATUS_NAME null
-                        }
+                      let display = "Ongoing";
+                      let bg = "linear-gradient(180deg, #fff176 0%, #fbc02d 100%)"; // vàng (Default: Ongoing)
+                      let color = "#000";
 
-                        return (
-                          <TableCell
-                            key={`${row.LINE}-${monthKey}`}
-                            align="center"
-                            style={{
-                              fontSize: "12px",
-                              background: bg,
-                              color,
-                              fontWeight: 700,
-                            }}
-                          >
-                            {display}
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  )
+                      if (isApprove) {
+                        display = "OK";
+                        bg = "linear-gradient(180deg, #66bb6a 0%, #2e7d32 100%)"; // xanh
+                        color = "#fff";
+                      } else if (isBeforeCurrentMonth) {
+                        display = "Delay";
+                        bg = "linear-gradient(180deg,rgb(233, 85, 80) 0%,rgb(241, 16, 8) 100%)"; // đỏ
+                        color = "#fff";
+                      }
+                      else if (isAfterCurrentMonth) {
+                        display = "N/A";
+                        bg = "#a4aca9";
+                      }
+
+                      return (
+                        <TableCell
+                          key={`${row.LINE}-${monthKey}`}
+                          align="center"
+                          style={{
+                            fontSize: "12px",
+                            background: bg,
+                            color,
+                            fontWeight: 700,
+                          }}
+                        >
+                          {display}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
                 )
+              )
               : ""}
           </TableBody>
         </Table>

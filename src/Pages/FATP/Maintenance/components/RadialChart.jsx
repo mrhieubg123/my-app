@@ -12,6 +12,11 @@ import HiModal from "../../../../components/HiModal";
 HighchartsMore(Highcharts);
 SolidGauge(Highcharts);
 
+const MONTH_ABBR = [
+  "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+  "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
+];
+
 const RadialChart = ({
   title = "",
   dataFATPErrorDetail = [],
@@ -23,22 +28,29 @@ const RadialChart = ({
   const [parentSize, setParentSize] = useState({ width: 0, height: 0 });
   const [showModal1, setShowModal1] = useState(false);
 
-  // 1. Total OK = số record có STATUS_NAME = 'approve'
+  const currentMonthIndex = new Date().getMonth();
+
+  // 1. Total OK = số record có STATUS = 'approve'
   const totalOK = idata.filter(
-    (item) => item.STATUS_NAME && item.STATUS_NAME.toLowerCase() === "approve"
+    (item) => item.STATUS && item.STATUS.toLowerCase() === "approve"
   );
 
-  // 2. Total OnGoing = STATUS_NAME = null và DATE_CHECK >= ngày hiện tại
-  // Giả sử DATE_CHECK luôn ở format 'YYYY-MM-DD'
-  const todayStr = new Date().toISOString().slice(0, 10); // ví dụ: '2025-11-24'
+  // 2. Total Delay = TARGET_MONTH nhỏ hơn tháng hiện tại và STATUS != 'approve'
+  const totalDelay = idata.filter((item) => {
+    const isApprove = item.STATUS && item.STATUS.toLowerCase() === "approve";
+    const targetMonthIndex = MONTH_ABBR.indexOf(item.TARGET_MONTH?.toUpperCase());
+    const isBeforeCurrentMonth = targetMonthIndex !== -1 && targetMonthIndex < currentMonthIndex;
+    return isBeforeCurrentMonth && !isApprove;
+  });
 
-  const totalOnGoing = idata.filter(
-    (item) => item.STATUS_NAME == null && item.DATE_CHECK >= todayStr
-  );
-
-  const totalDelay = idata.filter(
-    (item) => item.STATUS_NAME == null && item.DATE_CHECK < todayStr
-  );
+  // 3. Total OnGoing = còn lại
+  const totalOnGoing = idata.filter((item) => {
+    const isApprove = item.STATUS && item.STATUS.toLowerCase() === "approve";
+    const targetMonthIndex = MONTH_ABBR.indexOf(item.TARGET_MONTH?.toUpperCase());
+    const isBeforeCurrentMonth = targetMonthIndex !== -1 && targetMonthIndex < currentMonthIndex;
+    const isDelay = isBeforeCurrentMonth && !isApprove;
+    return !isApprove && !isDelay;
+  });
 
   const total = totalOK.length + totalDelay.length + totalOnGoing.length;
 
