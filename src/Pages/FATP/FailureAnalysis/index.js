@@ -25,6 +25,10 @@ if (typeof Highcharts === 'object') {
     Pareto(Highcharts);
     XRange(Highcharts);
 
+    if (Highcharts.AST && Highcharts.AST.allowedAttributes) {
+        Highcharts.AST.allowedAttributes.push('data-line');
+    }
+
     Highcharts.setOptions({
         time: {
             useUTC: false
@@ -94,6 +98,8 @@ const FailureAnalysis = () => {
     const [mockErrorData, setMockErrorData] = useState([]);
     const [openTrendModal, setOpenTrendModal] = useState(false);
     const [selectedErrorForTrend, setSelectedErrorForTrend] = useState(null);
+    const [selectedLineForTrend, setSelectedLineForTrend] = useState(null);
+    const [selectedLocationForTrend, setSelectedLocationForTrend] = useState(null);
     const selectedFactory = useSelector((state) => state.param.params.Factory);
 
     useEffect(() => {
@@ -245,6 +251,7 @@ const FailureAnalysis = () => {
                         y: y,
                         value: downtime,
                         machine: machineName,
+                        category: events[0].category,
                         lineName: line,
                         locationName: loc,
                         errorCount: events.length
@@ -254,10 +261,54 @@ const FailureAnalysis = () => {
         });
 
         return {
-            chart: { type: 'heatmap', backgroundColor: 'transparent' },
+            chart: {
+                type: 'heatmap',
+                backgroundColor: 'transparent',
+                events: {
+                    load: function () {
+                        const container = this.container;
+                        const yLabels = container.querySelectorAll('.heatmap-y-label');
+                        yLabels.forEach(label => {
+                            label.onclick = function (e) {
+                                e.stopPropagation();
+                                console.log('click', yLabels);
+                                const line = this.getAttribute('data-line');
+                                setSelectedErrorForTrend(null);
+                                setSelectedLineForTrend(line);
+                                setSelectedLocationForTrend(null);
+                                setOpenTrendModal(true);
+                            };
+                        });
+                    },
+                    redraw: function () {
+                        const container = this.container;
+                        const yLabels = container.querySelectorAll('.heatmap-y-label');
+                        yLabels.forEach(label => {
+                            label.onclick = function (e) {
+                                e.stopPropagation();
+                                const line = this.getAttribute('data-line');
+                                setSelectedErrorForTrend(null);
+                                setSelectedLineForTrend(line);
+                                setSelectedLocationForTrend(null);
+                                setOpenTrendModal(true);
+                            };
+                        });
+                    }
+                }
+            },
             title: { text: 'Location × Line Heatmap (Total Downtime)', style: { color: '#e2e8f0', fontSize: '14px', fontWeight: 'bold' } },
             xAxis: { categories: locationsUnique, title: { text: 'Location', style: { color: '#94a3b8' } }, labels: { style: { color: '#94a3b8' } } },
-            yAxis: { categories: linesUnique, title: null, labels: { style: { color: '#94a3b8' } } },
+            yAxis: {
+                categories: linesUnique,
+                title: null,
+                labels: {
+                    useHTML: true,
+                    style: { color: '#94a3b8' },
+                    formatter: function () {
+                        return `<span class="heatmap-y-label" data-line="${this.value}" style="cursor: pointer; display: inline-block;">${this.value}</span>`;
+                    }
+                }
+            },
             colorAxis: {
                 stops: [
                     [0, '#1e293b'], // Đen lam (Không lỗi)
@@ -272,9 +323,26 @@ const FailureAnalysis = () => {
                 formatter: function () {
                     const p = this.point;
                     return `Máy: <b>${p.machine || 'N/A'}</b><br/>
+                            Model: <b>${p.category || 'N/A'}</b><br/>
                             Vị trí: <b>${p.locationName}</b> (Line: <b>${p.lineName}</b>)<br/>
                             Số sự cố: <b>${p.errorCount}</b><br/>
                             Tổng Downtime: <b style="color:#f87171">${p.value} phút</b>`;
+                }
+            },
+            plotOptions: {
+                series: {
+                    cursor: 'pointer',
+                    point: {
+                        events: {
+                            click: function () {
+                                const p = this;
+                                setSelectedErrorForTrend(null);
+                                setSelectedLineForTrend(p.lineName);
+                                setSelectedLocationForTrend(p.locationName);
+                                setOpenTrendModal(true);
+                            }
+                        }
+                    }
                 }
             },
             series: [{
@@ -286,7 +354,7 @@ const FailureAnalysis = () => {
             }],
             credits: { enabled: false }
         };
-    }, [mockData]);
+    }, [mockData, setSelectedErrorForTrend, setSelectedLineForTrend, setSelectedLocationForTrend, setOpenTrendModal]);
 
     // --- Cấu hình Highcharts: Pareto ---
     const paretoOptions = useMemo(() => {
@@ -311,6 +379,8 @@ const FailureAnalysis = () => {
                     point: {
                         events: {
                             click: function () {
+                                setSelectedLineForTrend(null);
+                                setSelectedLocationForTrend(null);
                                 setSelectedErrorForTrend(this.category || this.name);
                                 setOpenTrendModal(true);
                             }
@@ -331,13 +401,25 @@ const FailureAnalysis = () => {
             legend: { enabled: false },
             credits: { enabled: false }
         };
-    }, [mockData]);
+    }, [mockData, setSelectedErrorForTrend, setSelectedLineForTrend, setSelectedLocationForTrend]);
 
     // --- Cấu hình Highcharts: Trend Modal ---
     const trendData = useMemo(() => {
-        if (!selectedErrorForTrend || !mockErrorData.length) return { categories: [], data: [], insight: "", color: "" };
+        if (!mockErrorData.length) return { categories: [], data: [], insight: "", color: "" };
+        if (!openTrendModal) {
+            return { categories: [], data: [], insight: "", color: "" };
+        }
 
-        const errorEvents = mockErrorData.filter(d => d.error === selectedErrorForTrend);
+        let errorEvents = mockErrorData;
+        if (selectedErrorForTrend) {
+            errorEvents = errorEvents.filter(d => d.error === selectedErrorForTrend);
+        }
+        if (selectedLineForTrend) {
+            errorEvents = errorEvents.filter(d => d.line === selectedLineForTrend);
+        }
+        if (selectedLocationForTrend) {
+            errorEvents = errorEvents.filter(d => d.location === selectedLocationForTrend);
+        }
 
         const now = dayjs();
         let latestDay = now.startOf('day');
@@ -365,24 +447,42 @@ const FailureAnalysis = () => {
 
         let insight = "";
         let color = "";
+        let filterDesc = selectedErrorForTrend
+            ? `lỗi '${selectedErrorForTrend}'`
+            : selectedLocationForTrend
+                ? `lỗi của máy tại ${selectedLineForTrend} - ${selectedLocationForTrend}`
+                : selectedLineForTrend
+                    ? `lỗi của chuyền ${selectedLineForTrend}`
+                    : `tổng lỗi toàn nhà máy`;
+
         if (recentSum > olderSum * 1.2) {
-            insight = `Xu hướng lỗi này đang có dấu hiệu TĂNG MẠNH trong 3 ngày gần đây (${recentSum} phút vs ${olderSum} phút của 4 ngày trước). Cần chú ý kiểm tra ngay.`;
+            insight = `Xu hướng ${filterDesc} đang có dấu hiệu TĂNG MẠNH trong 3 ngày gần đây (${recentSum} phút vs ${olderSum} phút của 4 ngày trước). Cần chú ý kiểm tra ngay.`;
             color = "#f87171"; // red
         } else if (recentSum < olderSum * 0.8) {
-            insight = `Xu hướng lỗi này đang GIẢM (${recentSum} phút vs ${olderSum} phút của 4 ngày trước). Các biện pháp khắc phục có vẻ đang phát huy hiệu quả.`;
+            insight = `Xu hướng ${filterDesc} đang GIẢM (${recentSum} phút vs ${olderSum} phút của 4 ngày trước). Các biện pháp khắc phục có vẻ đang phát huy hiệu quả.`;
             color = "#34d399"; // green
         } else {
-            insight = `Xu hướng lỗi này tương đối ỔN ĐỊNH. Không có biến động bất thường đáng kể (${recentSum} phút vs ${olderSum} phút).`;
+            insight = `Xu hướng ${filterDesc} tương đối ỔN ĐỊNH. Không có biến động bất thường đáng kể (${recentSum} phút vs ${olderSum} phút).`;
             color = "#fbbf24"; // yellow
         }
 
         return { categories, data, insight, color };
-    }, [selectedErrorForTrend, mockErrorData]);
+    }, [selectedErrorForTrend, selectedLineForTrend, selectedLocationForTrend, mockErrorData, openTrendModal]);
 
     const trendChartOptions = useMemo(() => {
+        let chartTitle = `Xu hướng 7 ngày: `;
+        if (selectedErrorForTrend) {
+            chartTitle += `Lỗi ${selectedErrorForTrend}`;
+        } else if (selectedLineForTrend) {
+            if (selectedLocationForTrend) {
+                chartTitle += `Máy tại ${selectedLineForTrend} - ${selectedLocationForTrend}`;
+            } else {
+                chartTitle += `Chuyền ${selectedLineForTrend}`;
+            }
+        }
         return {
             chart: { type: 'spline', backgroundColor: 'transparent' },
-            title: { text: `Xu hướng 7 ngày: ${selectedErrorForTrend || ''}`, style: { color: '#e2e8f0', fontWeight: 'bold', fontSize: '16px' } },
+            title: { text: chartTitle, style: { color: '#e2e8f0', fontWeight: 'bold', fontSize: '16px' } },
             xAxis: { categories: trendData.categories, labels: { style: { color: '#94a3b8' } } },
             yAxis: { title: { text: 'Downtime (Phút)', style: { color: '#94a3b8' } }, labels: { style: { color: '#94a3b8' } } },
             tooltip: { valueSuffix: ' phút' },
@@ -390,7 +490,7 @@ const FailureAnalysis = () => {
             credits: { enabled: false },
             legend: { enabled: false }
         };
-    }, [trendData, selectedErrorForTrend]);
+    }, [trendData, selectedErrorForTrend, selectedLineForTrend, selectedLocationForTrend]);
 
     // --- Cấu hình Highcharts: X-Range ---
     const xrangeOptions = useMemo(() => {
@@ -497,35 +597,56 @@ const FailureAnalysis = () => {
                     { label: "Problematic Machine", value: metrics.probMachine, icon: <Memory sx={{ fontSize: 36, color: '#8b5cf6' }} />, bg: "#15101f", ring: "#8b5cf6" },
                     { label: "Top Cause", value: metrics.topError, icon: <ErrorOutline sx={{ fontSize: 36, color: '#ec4899' }} />, bg: "#1a0e16", ring: "#ec4899" },
                     { label: "Avg Repair Time", value: `${metrics.avgTime}m`, icon: <Autorenew sx={{ fontSize: 36, color: '#10b981' }} />, bg: "#0c1a17", ring: "#10b981" },
-                ].map((kpi, index) => (
-                    <Grid item size={{ lg: 2, md: 4, sm: 6, xs: 12 }} xs={12} sm={6} md={4} lg={2} key={index}>
-                        <Box sx={{
-                            position: 'relative', overflow: 'hidden', p: 1.5, borderRadius: "12px", height: "100%",
-                            bgcolor: kpi.bg, border: `1px solid rgba(255,255,255,0.05)`,
-                            boxShadow: `0 4px 15px -5px ${kpi.ring}40`,
-                            transition: 'all 0.3s ease',
-                            display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '80px',
-                            '&:hover': { transform: 'translateY(-3px)', boxShadow: `0 6px 20px 0px ${kpi.ring}60`, border: `1px solid ${kpi.ring}` }
-                        }}>
-                            <Typography sx={{ color: "#94a3b8", fontSize: "0.75rem", fontWeight: 700, mb: 0.5, textTransform: 'uppercase', whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                                {kpi.label}
-                            </Typography>
-                            <Typography sx={{
-                                color: "#fff",
-                                fontSize: String(kpi.value).length > 15 ? "1rem" : String(kpi.value).length > 10 ? "1.2rem" : "1.6rem",
-                                fontWeight: 900,
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis"
-                            }}>
-                                {kpi.value}
-                            </Typography>
-                            <Box sx={{ position: 'absolute', right: -5, bottom: -5, opacity: 0.15, transform: 'rotate(-10deg)' }}>
-                                {kpi.icon}
+                ].map((kpi, index) => {
+                    const isClickable = ["Total Downtime", "Total Error Events", "Critical Line"].includes(kpi.label);
+                    const handleKpiClick = () => {
+                        if (kpi.label === "Total Downtime" || kpi.label === "Total Error Events") {
+                            setSelectedErrorForTrend(null);
+                            setSelectedLineForTrend(null);
+                            setSelectedLocationForTrend(null);
+                            setOpenTrendModal(true);
+                        } else if (kpi.label === "Critical Line" && metrics.critLine) {
+                            setSelectedErrorForTrend(null);
+                            setSelectedLineForTrend(metrics.critLine);
+                            setSelectedLocationForTrend(null);
+                            setOpenTrendModal(true);
+                        }
+                    };
+
+                    return (
+                        <Grid item size={{ lg: 2, md: 4, sm: 6, xs: 12 }} xs={12} sm={6} md={4} lg={2} key={index}>
+                            <Box 
+                                onClick={handleKpiClick}
+                                sx={{
+                                    position: 'relative', overflow: 'hidden', p: 1.5, borderRadius: "12px", height: "100%",
+                                    bgcolor: kpi.bg, border: `1px solid rgba(255,255,255,0.05)`,
+                                    boxShadow: `0 4px 15px -5px ${kpi.ring}40`,
+                                    transition: 'all 0.3s ease',
+                                    display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '80px',
+                                    cursor: isClickable ? 'pointer' : 'default',
+                                    '&:hover': { transform: 'translateY(-3px)', boxShadow: `0 6px 20px 0px ${kpi.ring}60`, border: `1px solid ${kpi.ring}` }
+                                }}
+                            >
+                                <Typography sx={{ color: "#94a3b8", fontSize: "0.75rem", fontWeight: 700, mb: 0.5, textTransform: 'uppercase', whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                    {kpi.label}
+                                </Typography>
+                                <Typography sx={{
+                                    color: "#fff",
+                                    fontSize: String(kpi.value).length > 15 ? "1rem" : String(kpi.value).length > 10 ? "1.2rem" : "1.6rem",
+                                    fontWeight: 900,
+                                    whiteSpace: "nowrap",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis"
+                                }}>
+                                    {kpi.value}
+                                </Typography>
+                                <Box sx={{ position: 'absolute', right: -5, bottom: -5, opacity: 0.15, transform: 'rotate(-10deg)' }}>
+                                    {kpi.icon}
+                                </Box>
                             </Box>
-                        </Box>
-                    </Grid>
-                ))}
+                        </Grid>
+                    );
+                })}
             </Grid>
 
             {/* --- VISUALIZATIONS --- */}
