@@ -32,24 +32,21 @@ const RadialChart = ({
 
   // 1. Total OK = số record có STATUS = 'approve'
   const totalOK = idata.filter(
-    (item) => item.STATUS && item.STATUS.toLowerCase() === "approve"
+    (item) => item.STATUS && item.STATUS.toLowerCase() === "ok"
   );
 
   // 2. Total Delay = TARGET_MONTH nhỏ hơn tháng hiện tại và STATUS != 'approve'
   const totalDelay = idata.filter((item) => {
-    const isApprove = item.STATUS && item.STATUS.toLowerCase() === "approve";
-    const targetMonthIndex = MONTH_ABBR.indexOf(item.TARGET_MONTH?.toUpperCase());
-    const isBeforeCurrentMonth = targetMonthIndex !== -1 && targetMonthIndex < currentMonthIndex;
-    return isBeforeCurrentMonth && !isApprove;
+    const isApprove = item.STATUS && item.STATUS.toLowerCase() === "ok";
+    const isDenied = item.STATUS && item.STATUS.trim().toLowerCase().startsWith("deny");
+    return isDenied || item.STATUS === null;
   });
 
   // 3. Total OnGoing = còn lại
   const totalOnGoing = idata.filter((item) => {
-    const isApprove = item.STATUS && item.STATUS.toLowerCase() === "approve";
-    const targetMonthIndex = MONTH_ABBR.indexOf(item.TARGET_MONTH?.toUpperCase());
-    const isBeforeCurrentMonth = targetMonthIndex !== -1 && targetMonthIndex < currentMonthIndex;
-    const isDelay = isBeforeCurrentMonth && !isApprove;
-    return !isApprove && !isDelay;
+    const isApprove = item.STATUS && item.STATUS.toLowerCase() === "ok";
+    const isDenied = item.STATUS && item.STATUS.trim().toLowerCase().startsWith("deny");
+    return !isApprove && !isDenied && item.STATUS !== null;
   });
 
   const total = totalOK.length + totalDelay.length + totalOnGoing.length;
@@ -216,7 +213,7 @@ const RadialChart = ({
               },
             },
             {
-              name: "Delay",
+              name: "Need Maintenance",
               y: totalDelay.length,
               color: {
                 linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },

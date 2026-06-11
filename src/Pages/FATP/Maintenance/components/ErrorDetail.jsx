@@ -42,7 +42,7 @@ const ErrorDetail = ({ idata = [] }) => {
       align: "center",
     },
     {
-      field: "NAME_MACHINE",
+      field: "MACHINE_NAME",
       headerName: "Machine",
       flex: 4, // tự chia chiều rộng
       minWidth: 150,
@@ -63,24 +63,12 @@ const ErrorDetail = ({ idata = [] }) => {
       ),
     },
     {
-      field: "QR_CODE",
-      headerName: "QR checklist",
+      field: "NOTE",
+      headerName: "Note",
       flex: 4, // tự chia chiều rộng
       minWidth: 150,
       headerAlign: "center",
       align: "center",
-      renderCell: (params) => (
-        <a
-          href={`https://fiisw-cns.myfiinet.com/paperless/machine-history?qrcode=${encodeURIComponent(
-            params.value || ""
-          )}`}
-          style={{ whiteSpace: "normal", wordWrap: "break-word", color: "#3498db" }}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {params.value || ""}
-        </a>
-      ),
     },
     {
       field: "STATUS",
@@ -90,14 +78,15 @@ const ErrorDetail = ({ idata = [] }) => {
       headerAlign: "center",
       align: "center",
       renderCell: (params) => {
-        const row = params.row;
-        const todayStr = new Date().toISOString().slice(0, 10);
-        const status =
-          row.STATUS_NAME === "approve"
-            ? "Approved"
-            : row.DATE_CHECK < todayStr
-            ? "Delay"
-            : "Ongoing";
+        const rawStatus = params.row.STATUS;
+        const isDenied = rawStatus && rawStatus.trim().toLowerCase().startsWith("deny");
+        const status = !rawStatus
+          ? "Need Maintenance"
+          : rawStatus.trim().toUpperCase() === "OK" || rawStatus.trim().toUpperCase() === "APPROVED"
+            ? "OK"
+            : isDenied
+              ? rawStatus.trim()
+              : `Waiting for ${rawStatus.trim()} signature`;
         return (
           <Box
             sx={{
@@ -105,13 +94,15 @@ const ErrorDetail = ({ idata = [] }) => {
               px: 1, // padding ngang nhỏ
               py: 0.3,
               background:
-                status === "Approved"
+                status === "OK"
                   ? "linear-gradient(180deg, #66bb6a 0%, #2e7d32 100%)" // xanh lá gradient
-                  : status === "Ongoing"
-                  ? "linear-gradient(180deg, #fff176 0%, #fbc02d 100%)"
-                  : "linear-gradient(180deg,rgb(233, 85, 80) 0%,rgb(241, 16, 8) 100%)",
+                  : isDenied
+                    ? "linear-gradient(180deg, rgb(233, 85, 80) 0%, rgb(241, 16, 8) 100%)" // đỏ gradient
+                    : status !== 'Need Maintenance'
+                      ? "linear-gradient(180deg, #fff176a2 0%, #fbc02d 100%)"
+                      : "linear-gradient(180deg,rgb(233, 85, 80) 0%,rgb(241, 16, 8) 100%)",
               borderRadius: 2,
-              color: status === "Ongoing" ? "#000" : "#fff", // màu chữ
+              color: (status === 'Need Maintenance' || isDenied) ? "#fff" : "#000", // màu chữ
               fontWeight: 700,
               minWidth: "fit-content",
             }}
