@@ -31,7 +31,7 @@ import {
   CreateNewFolderRounded,
   EditRounded,
 } from "@mui/icons-material";
-import { getAuthorizedAxiosIntance } from "../../../../utils/axiosConfig";
+import { getAuthorizedAxiosIntance, getBaseURL } from "../../../../utils/axiosConfig";
 
 const axiosInstance = await getAuthorizedAxiosIntance();
 //http://localhost:5000
@@ -199,11 +199,7 @@ const FileSection = ({ headerParts, subHeaderParts }) => {
   };
 
   const handleDownload = async (filename) => {
-    const res = await fetch("/config.json");
-    const configJson = await res.json();
-    const baseURL = window.location.hostname.startsWith("10.228.121.39")
-      ? configJson.apiBaseUrl121
-      : configJson.apiBaseUrl;
+    const baseURL = await getBaseURL();
     window.open(
       `${baseURL}${API}/download/${
         headerParts + selectedFolder

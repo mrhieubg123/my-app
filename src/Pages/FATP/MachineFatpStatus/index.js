@@ -73,6 +73,7 @@ const FATPMachine = () => {
   const legendItem = useMemo(
     () => [
       { color: "#00e396", label: "Run" },
+      { color: "#308edbff", label: "Idle" },
       { color: "#fdfd00", label: "Stop" },
       { color: "pink", label: "Rest" },
       { color: "#ff3110", label: "Error" },

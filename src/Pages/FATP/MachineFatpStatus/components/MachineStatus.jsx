@@ -105,6 +105,10 @@ const TableMachineStatus = ({ idata = [], onModelChange, onModelChange2 }) => {
         background: "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)",
         boxShadow: "0 0 4px rgba(56, 239, 125, 0.7)",
       },
+      IDLE: {
+        background: "linear-gradient(135deg, #308edbff 0%, #308edbff 100%)",
+        boxShadow: "0 0 4px rgba(36, 174, 209, 0.7)",
+      },
       STOP: {
         background: "linear-gradient(135deg, #f09819 0%, #edde5d 100%)",
         boxShadow: "0 0 4px rgba(240, 152, 25, 0.7)",

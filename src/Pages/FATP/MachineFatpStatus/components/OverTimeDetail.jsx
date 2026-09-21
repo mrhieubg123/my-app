@@ -38,7 +38,7 @@ const OverTimeDetail = ({ idata = [], idataMachine = [] }) => {
     type: "",
     comment: "",
     idConfirm: "",
-    factory: selectedFactory,
+    factory: "",
   });
   const [dataOverTime, setDataOverTime] = useState([]);
   const selectedFactory = useSelector((state) => state.param.params.Factory);

@@ -18,7 +18,7 @@ import {
   Paper,
   LinearProgress,
 } from "@mui/material";
-import { getAuthorizedAxiosIntance } from "../../../utils/axiosConfig";
+import { getAuthorizedAxiosIntance, getBaseURL } from "../../../utils/axiosConfig";
 import {
   FolderSpecialRounded, FilePresentRounded,
   Search,
@@ -459,24 +459,8 @@ const AoiPicture = () => {
     );
   }
 
-  let cachedBaseURL = null;
-
-  const getBaseURL = async () => {
-    if (cachedBaseURL) return cachedBaseURL;
-
-    const res = await fetch("/config.json");
-    if (!res.ok) throw new Error("Cannot load config.json");
-    const configJson = await res.json();
-
-    cachedBaseURL =
-      window.location.hostname === "10.228.121.39"
-        ? configJson.apiBaseUrl121
-        : configJson.apiBaseUrl;
-
-    return cachedBaseURL;
-  };
-
   const handleDownload = async (filename) => {
+    const baseURL = await getBaseURL();
     window.open(
       `${baseURL}${API}/download/${encodeURIComponent(filename)}`,
       "_blank",

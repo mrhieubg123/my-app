@@ -55,6 +55,11 @@ import AoiPicture from './Pages/FATP/AoiPicture';
 import FailureAnalysisScreen from './Pages/FATP/FailureAnalysis';
 // import DryingControlScreen from './Pages/KITTING/Drying';
 
+// Overview Features
+import FactoryFloorMap from './Pages/Overview/FactoryMap';
+import AlertCenter from './Pages/Overview/AlertCenter';
+import OEEDashboard from './Pages/Overview/OEEDashboard';
+
 
 const AppRoutes = ({ user }) => {
   const paramState = useSelector(state => state.param);
@@ -129,6 +134,10 @@ const AppRoutes = ({ user }) => {
       <Route path='/FATP/AoiPicture' element={<PrivateRoute><AoiPicture /></PrivateRoute>} />
       <Route path='/FATP/FailureAnalysis' element={<PrivateRoute><FailureAnalysisScreen /></PrivateRoute>} />
 
+      {/* Overview Features */}
+      <Route path='/Overview/FactoryMap' element={<PrivateRoute><FactoryFloorMap /></PrivateRoute>} />
+      <Route path='/Overview/AlertCenter' element={<PrivateRoute><AlertCenter /></PrivateRoute>} />
+      <Route path='/Overview/OEEDashboard' element={<PrivateRoute><OEEDashboard /></PrivateRoute>} />
 
       <Route path='/ErrorPage' element={<ErrorPage />} />
     </Routes>

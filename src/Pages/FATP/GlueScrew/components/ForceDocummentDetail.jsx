@@ -20,7 +20,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import dayjs from "dayjs";
-import { getAuthorizedAxiosIntance } from "../../../../utils/axiosConfig";
+import { getAuthorizedAxiosIntance, getBaseURL } from "../../../../utils/axiosConfig";
 import {
   AddOutlined,
   EditOutlined,
@@ -272,11 +272,7 @@ const ForceDocummentDetail = ({
   };
 
   const handleDownload = async (filename) => {
-    const res = await fetch("/config.json");
-    const config = await res.json();
-    const baseURL = window.location.hostname.startsWith("10.228.121.39")
-      ? config.apiBaseUrl121
-      : config.apiBaseUrl;
+    const baseURL = await getBaseURL();
     // filenameFromDB có thể là "uploads/1729_report.xlsx" hoặc "1729_report.xlsx"
     const params = new URLSearchParams({
       path: filename.replace("uploads/", ""),

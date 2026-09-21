@@ -24,7 +24,7 @@ import HiModal from "../../../../components/HiModal";
 import ErrorDetailImage from "./ErrorDetailImage";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import { getAuthorizedAxiosIntance } from "../../../../utils/axiosConfig";
+import { getAuthorizedAxiosIntance, getBaseURL } from "../../../../utils/axiosConfig";
 import CloseIcon from "@mui/icons-material/Close";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 
@@ -113,12 +113,8 @@ const TableMaintenancePlan = ({ idata = [], DataSeries = [], keyFilter }) => {
   const [apiBaseUrl, setApiBaseUrl] = useState("");
 
   useEffect(() => {
-    fetch("/config.json")
-      .then((res) => res.json())
-      .then((configJson) => {
-        const url = window.location.hostname.startsWith("10.228.121.39")
-          ? configJson.apiBaseUrl121
-          : configJson.apiBaseUrl;
+    getBaseURL()
+      .then((url) => {
         setApiBaseUrl(url);
       })
       .catch((err) => console.error("Error loading config:", err));

@@ -35,6 +35,10 @@ import {
   RoundaboutLeftOutlined,
   SafetyDividerOutlined,
   ConstructionRounded,
+  SpaceDashboardOutlined,
+  MapOutlined,
+  NotificationsActiveOutlined,
+  LeaderboardOutlined,
 } from "@mui/icons-material";
 import { useSelector, useDispatch } from "react-redux";
 import { setParam, resetParam } from "../../Redux/Actions/paramSlice";
@@ -67,6 +71,28 @@ const SidebarContent = ({ isMini, selectedItem, setSelectedItem }) => {
   };
 
   const menuItems = [
+    {
+      label: "Overview",
+      icon: <SpaceDashboardOutlined />,
+      key: "overview",
+      subItems: [
+        {
+          label: "Factory Floor Map",
+          icon: <MapOutlined />,
+          path: "/Overview/FactoryMap",
+        },
+        {
+          label: "Alert Center",
+          icon: <NotificationsActiveOutlined />,
+          path: "/Overview/AlertCenter",
+        },
+        {
+          label: "OEE Dashboard",
+          icon: <LeaderboardOutlined />,
+          path: "/Overview/OEEDashboard",
+        },
+      ],
+    },
     {
       label: "Daily Report",
       icon: <InventoryOutlinedIcon />,
