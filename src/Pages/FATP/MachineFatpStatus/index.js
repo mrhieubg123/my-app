@@ -3,10 +3,9 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import HiBox from "../../../components/HiBox";
 import {
   Grid,
@@ -31,6 +30,27 @@ import ESDTotal from "./components/ESDTotal";
 
 const axiosInstance = await getAuthorizedAxiosIntance();
 
+const getProductionDayRange = (dateValue) => {
+  const date = String(dateValue || "").slice(0, 10);
+  const [year, month, day] = date.split("-").map(Number);
+
+  if (!year || !month || !day) {
+    return { dateFrom: "", dateTo: "" };
+  }
+
+  const nextDay = new Date(year, month - 1, day + 1);
+  const nextDate = [
+    nextDay.getFullYear(),
+    String(nextDay.getMonth() + 1).padStart(2, "0"),
+    String(nextDay.getDate()).padStart(2, "0"),
+  ].join("-");
+
+  return {
+    dateFrom: `${date} 07:30:00`,
+    dateTo: `${nextDate} 07:29:59`,
+  };
+};
+
 const FATPMachine = () => {
   const paramState = useSelector((state) => state.param);
   const [queryMain, setQueryMain] = useState({
@@ -41,16 +61,11 @@ const FATPMachine = () => {
   const [queryDate, setQueryDate] = useState("");
   const selectedFactory = useSelector((state) => state.param.params.Factory);
 
-  const queryMainStr = useMemo(() => JSON.stringify(queryMain.arr), [queryMain.arr]);
-
-  const isFirstRender = useRef(true);
-  const isFirstRender2 = useRef(true);
   const [showModal1, setShowModal1] = useState(false);
   const [showModal2, setShowModal2] = useState(false);
   const [showModal3, setShowModal3] = useState(false);
-  const [isLoadingData, setIsLoadingData] = useState(null);
-  const [isLoadingData1, setIsLoadingData1] = useState(null);
-  const [isLoadingData2, setIsLoadingData2] = useState(null);
+  const [, setIsLoadingData] = useState(null);
+  const [, setIsLoadingData2] = useState(null);
   const [dataFATPMachineStatus, setDataFATPMachineStatus] = useState([]);
   const [dataFATPMachineTotalTrend, setDataFATPMachineTotalTrend] = useState(
     []
@@ -82,19 +97,24 @@ const FATPMachine = () => {
     []
   );
 
-  const fetchFATPMachineStatus = async () => {
+  const fetchFATPMachineStatus = useCallback(async (isMountedObject = { current: true }) => {
     setIsLoadingData(true);
     try {
       const response = await axiosInstance.post("api/Fatp/FATPMachineStatus", { factory: selectedFactory });
+      if (!isMountedObject.current) return;
       setDataFATPMachineStatus(response.data || []); // Cập nhật state
     } catch (error) {
       console.log(error.message);
     } finally {
-      setIsLoadingData(false);
+      if (isMountedObject.current) setIsLoadingData(false);
     }
-  };
+  }, [selectedFactory]);
 
-  const fetchFATPMachineTotalTrend = async (model, isMountedObject = { current: true }) => {
+  const fetchFATPMachineTotalTrend = async (
+    model,
+    isMountedObject = { current: true },
+    updateQueryDate = true
+  ) => {
     setIsLoadingData2(true);
     try {
       const response = await axiosInstance.post(
@@ -106,19 +126,19 @@ const FATPMachine = () => {
       const data = response.data || [];
       setDataFATPMachineTotalTrend(data);
 
-      if (data.length > 0) {
+      if (updateQueryDate && data.length > 0) {
         const lastesTimeStr = data
           .map((item) => item.DATET)
           .reduce((a, b) => (new Date(a) > new Date(b) ? a : b));
         setQueryDate(lastesTimeStr);
-      } else {
+      } else if (updateQueryDate) {
         // Nếu không có dữ liệu thì có thể set về null hoặc ngày hiện tại
         setQueryDate(null);
       } // Lấy thời gian mới nhất
     } catch (error) {
       console.log(error.message);
     } finally {
-      setIsLoadingData2(false);
+      if (isMountedObject.current) setIsLoadingData2(false);
     }
   };
 
@@ -132,17 +152,18 @@ const FATPMachine = () => {
       );
       if (!isMountedObject.current) return;
 
-      setDataFATPMachineAnalysis(response.data || []); // Cập nhật state
+      const data = response.data || [];
+      setDataFATPMachineAnalysis(data); // Cập nhật state
       const tempError = {};
-      response.data
+      data
         .filter((item) => item.STATUS === "NG")
         .forEach((item) => {
-          if (tempError[item.ERROR]) {
-            tempError[item.ERROR].Downtime += (item.TOTALTIME * 1) / 3600;
-            tempError[item.ERROR].Frequency += item.FREN * 1;
+          if (tempError[item.ERROR_CATEGORY]) {
+            tempError[item.ERROR_CATEGORY].Downtime += (item.TOTALTIME * 1) / 3600;
+            tempError[item.ERROR_CATEGORY].Frequency += item.FREN * 1;
           } else {
-            tempError[item.ERROR] = {
-              Series: item.ERROR,
+            tempError[item.ERROR_CATEGORY] = {
+              Series: item.ERROR_CATEGORY,
               Downtime: (item.TOTALTIME * 1) / 3600,
               Frequency: item.FREN * 1,
             };
@@ -159,7 +180,7 @@ const FATPMachine = () => {
         labels: ["Frequency", "Duration(h)"],
       });
       const tempError2 = {};
-      response.data
+      data
         .filter((item) => item.STATUS === "NG")
         .forEach((item) => {
           if (tempError2[item.LINE]) {
@@ -188,7 +209,7 @@ const FATPMachine = () => {
     } catch (error) {
       console.log(error.message);
     } finally {
-      setIsLoadingData2(false);
+      if (isMountedObject.current) setIsLoadingData2(false);
     }
   };
 
@@ -205,7 +226,7 @@ const FATPMachine = () => {
     } catch (error) {
       console.log(error.message);
     } finally {
-      setIsLoadingData2(false);
+      if (isMountedObject.current) setIsLoadingData2(false);
     }
   };
 
@@ -226,7 +247,7 @@ const FATPMachine = () => {
     } catch (error) {
       console.log(error.message);
     } finally {
-      setIsLoadingData2(false);
+      if (isMountedObject.current) setIsLoadingData2(false);
     }
   };
 
@@ -243,17 +264,21 @@ const FATPMachine = () => {
     } catch (error) {
       console.log(error.message);
     } finally {
-      setIsLoadingData2(false);
+      if (isMountedObject.current) setIsLoadingData2(false);
     }
   };
 
   useEffect(() => {
-    fetchFATPMachineStatus();
+    const isMounted = { current: true };
+    fetchFATPMachineStatus(isMounted);
     const interval = setInterval(() => {
-      fetchFATPMachineStatus();
+      fetchFATPMachineStatus(isMounted);
     }, 5000);
-    return () => clearInterval(interval);
-  }, [selectedFactory]);
+    return () => {
+      isMounted.current = false;
+      clearInterval(interval);
+    };
+  }, [fetchFATPMachineStatus]);
 
   useEffect(() => {
     const isMounted = { current: true };
@@ -264,26 +289,30 @@ const FATPMachine = () => {
       factory: selectedFactory,
     };
     fetchFATPMachineTotalTrend(newMo, isMounted);
-    fetchFATPMachineErrorDetail({ error: "" }, isMounted);
+    fetchFATPMachineErrorDetail({ error: "", factory: selectedFactory }, isMounted);
     const interval = setInterval(() => {
-      fetchFATPMachineTotalTrend(newMo);
+      fetchFATPMachineTotalTrend(newMo, isMounted, false);
     }, 30 * 60000);
     return () => {
       isMounted.current = false;
       clearInterval(interval);
     };
-  }, [queryMainStr, paramState.params.starttime, paramState.params.endtime, selectedFactory]);
+  }, [queryMain.arr, paramState.params.starttime, paramState.params.endtime, selectedFactory]);
 
   useEffect(() => {
-    if (isFirstRender2.current) {
-      isFirstRender2.current = false;
+    if (!queryDate) {
+      setDataFATPMachineAnalysis([]);
+      setDataFATPErrorDetail([]);
+      setDataFATPMachineError5m([]);
+      setData5({ DataSeries: [], colors: [], labels: [] });
+      setData6({ DataSeries: [], colors: [], labels: [] });
       return;
     }
     const isMounted = { current: true };
+    const productionDayRange = getProductionDayRange(queryDate);
     const newMo = {
       arr: queryMain.arr,
-      dateFrom: queryDate ? queryDate + " 00:00:00" : "",
-      dateTo: queryDate ? queryDate + " 23:59:59" : "",
+      ...productionDayRange,
       factory: selectedFactory,
     };
     fetchFATPMachineAnalysis(newMo, isMounted);
@@ -292,7 +321,7 @@ const FATPMachine = () => {
     return () => {
       isMounted.current = false;
     };
-  }, [queryMainStr, queryDate, selectedFactory]);
+  }, [queryMain.arr, queryDate, selectedFactory]);
 
   const handleChangeMain = useCallback((model) => {
     setQueryMain((prev) => ({
@@ -308,12 +337,12 @@ const FATPMachine = () => {
       ? dataFATPMachineAnalysis
         .filter((item) => item.STATUS === "NG")
         .forEach((item) => {
-          if (tempError[item.ERROR]) {
-            tempError[item.ERROR].Downtime += (item.TOTALTIME * 1) / 3600;
-            tempError[item.ERROR].Frequency += item.FREN * 1;
+          if (tempError[item.ERROR_CATEGORY]) {
+            tempError[item.ERROR_CATEGORY].Downtime += (item.TOTALTIME * 1) / 3600;
+            tempError[item.ERROR_CATEGORY].Frequency += item.FREN * 1;
           } else {
-            tempError[item.ERROR] = {
-              Series: item.ERROR,
+            tempError[item.ERROR_CATEGORY] = {
+              Series: item.ERROR_CATEGORY,
               Downtime: (item.TOTALTIME * 1) / 3600,
               Frequency: item.FREN * 1,
             };
@@ -322,13 +351,13 @@ const FATPMachine = () => {
       : dataFATPMachineAnalysis
         .filter((item) => item.STATUS === "NG")
         .forEach((item) => {
-          if (tempError[item.ERROR_CODE]) {
-            tempError[item.ERROR_CODE].Downtime +=
+          if (tempError[item.ERROR]) {
+            tempError[item.ERROR].Downtime +=
               (item.TOTALTIME * 1) / 3600;
-            tempError[item.ERROR_CODE].Frequency += item.FREN * 1;
+            tempError[item.ERROR].Frequency += item.FREN * 1;
           } else {
-            tempError[item.ERROR_CODE] = {
-              Series: item.ERROR_CODE,
+            tempError[item.ERROR] = {
+              Series: item.ERROR,
               Downtime: (item.TOTALTIME * 1) / 3600,
               Frequency: item.FREN * 1,
             };
@@ -402,14 +431,14 @@ const FATPMachine = () => {
     }
     setShowModal2((prev) => !prev);
     console.log(model);
-    fetchFATPMachineErrorDetail({ error: model });
+    fetchFATPMachineErrorDetail({ error: model, factory: selectedFactory });
   };
 
   function normalizeDateTo(dateTo) {
     if (!dateTo) return null;
 
     // Tách hh:mm:ss
-    const [hh, mm, ss] = dateTo.split(":").map(Number);
+    const [hh] = dateTo.split(":").map(Number);
 
     // Nếu >= 24:00:00 thì set về 23:59:59
     if (hh >= 24) {
@@ -421,11 +450,6 @@ const FATPMachine = () => {
   const handleChangeErrorDetail = (nol) => {
     console.log("handleChangeErrorDetail", nol);
     setShowModal1((prev) => !prev);
-    const newModel = {
-      arr: queryMain.arr,
-      dateFrom: queryDate + " " + nol.dateFrom,
-      dateTo: queryDate + " " + normalizeDateTo(nol.dateTo),
-    };
     const startBoundary = new Date(queryDate + " " + nol.dateFrom);
     const endBoundary = new Date(queryDate + " " + normalizeDateTo(nol.dateTo));
     const dataFilter = dataFATPErrorDetail.filter((item) => {
@@ -513,7 +537,7 @@ const FATPMachine = () => {
           md={12}
           xs={4}
           header="Failure Analysis"
-          note={switchErAnLo ? "by ErrorCode" : "by Errors"}
+          note={switchErAnLo ? "by Errors" : "by Errors Category"}
           variant="filled"
           height="35vh"
         >
@@ -528,7 +552,7 @@ const FATPMachine = () => {
             DataSeries={Data5.DataSeries}
             Colors={Data5.colors}
             Labels={Data5.labels}
-            keyFilter={switchErAnLo ? "ERROR_CODE" : "ERROR_TYPE"}
+            keyFilter={switchErAnLo ? "ERROR_TYPE" : "ERROR_CATEGORY"}
           />
         </HiBox>
         <HiBox

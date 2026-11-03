@@ -79,6 +79,7 @@ const FactorySelect = () => {
                 }}
             >
                 <ToggleButton value="A02">Factory A02</ToggleButton>
+                <ToggleButton value="B01">Factory B01</ToggleButton>
                 <ToggleButton value="BN3">Factory BN3</ToggleButton>
                 <ToggleButton value="B06">Factory B06</ToggleButton>
             </ToggleButtonGroup>

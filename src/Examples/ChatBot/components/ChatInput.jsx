@@ -51,7 +51,9 @@ const ChatInput = ({onSend, onChangeQuestion, idata=[]}) =>{
         recognition.start();
     }
     const handleKeyDown = (event) => {
-        if (event.key === 'Enter') {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            // Prevent a parent form from submitting and reloading the page.
+            event.preventDefault();
             handleSend();
         }
     }

@@ -113,7 +113,8 @@ const ChatBot = ({ isOpen, isPin, onStateChange, onFileChange }) => {
           status_code: data.status_code,
           params: {
             Building: data.params.Building,
-            Factory: data.params.Factory,
+            // Keep the factory selected in the UI. The chatbot response may omit
+            // Factory (or return a default value), which must not overwrite it.
             Linename: data.params.Linename,
             Machine: data.params.Machine,
             Project: data.params.Project,

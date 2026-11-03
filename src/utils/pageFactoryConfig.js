@@ -2,8 +2,8 @@
 // Nếu một page không được cấu hình ở đây, mặc định sẽ khả dụng cho tất cả Factory.
 export const PAGE_FACTORY_MAPPING = {
     fatp: {
-        fatpmachinecontrol: ["A02", "BN3", "B06"],
-        failureanalysis: ["A02", "BN3", "B06"],
+        fatpmachinecontrol: ["A02", "B01", "BN3", "B06"],
+        failureanalysis: ["A02", "B01", "BN3", "B06"],
         gluescrewstatus: ["A02"],
         vcutmachinestatus: ["A02"],
         maintenancestatus: ["A02"],

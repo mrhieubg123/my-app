@@ -31,8 +31,8 @@ const TableMachineStatus = ({
   const [queryMain, setQueryMain] = useState({
     line: "",
     name: "",
-    dateFrom: model.dateFrom,
-    dateTo: model.dateTo,
+    dateFrom: model?.dateFrom,
+    dateTo: model?.dateTo,
     type: activeModeId,
   });
   const [selectedCells, setSelectedCells] = useState(new Map());
